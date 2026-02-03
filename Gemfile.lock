@@ -202,7 +202,12 @@ GEM
       racc (~> 1.4)
     nokogiri (1.19.0-x86_64-linux-musl)
       racc (~> 1.4)
+    openai (0.43.0)
+      base64
+      cgi
+      connection_pool
     orm_adapter (0.5.0)
+    ostruct (0.6.3)
     pg (1.6.3)
     pg (1.6.3-aarch64-linux)
     pg (1.6.3-aarch64-linux-musl)
@@ -348,6 +353,8 @@ DEPENDENCIES
   font-awesome-sass (~> 6.1)
   importmap-rails
   jbuilder
+  openai
+  ostruct
   pg (~> 1.1)
   puma (>= 5.0)
   rails (~> 7.1.6)

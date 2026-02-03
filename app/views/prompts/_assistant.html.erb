@@ -1,0 +1,31 @@
+<div id="assistant_prompt_<%= prompt.id %>">
+  <div class="message message-assistant">
+    <div class="message-bubble">
+      <div class="message-label">Assistant</div>
+
+      <% text = prompt.output&.content.is_a?(Hash) ? prompt.output.content["text"].to_s : "" %>
+
+      <% if text.present? %>
+        <div class="message-text"><%= simple_format(h(text)) %></div>
+
+        <div class="actions-row">
+          <button class="btn btn-primary" disabled>Draft email</button>
+          <button class="btn btn-secondary" disabled>Create task</button>
+          <button class="btn btn-secondary" disabled>Request missing info</button>
+        </div>
+
+      <% elsif prompt.status == "failed" && prompt.error_message.present? %>
+        <div class="message-text">
+          <strong>Failed:</strong> <%= h(prompt.error_message) %>
+        </div>
+
+      <% else %>
+        <div class="assistant-ghost">
+          <div class="ghost-line w-60"></div>
+          <div class="ghost-line w-90"></div>
+          <div class="ghost-line w-75"></div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

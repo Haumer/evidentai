@@ -1,0 +1,50 @@
+<%= turbo_stream_from @conversation %>
+
+<div class="chat <%= 'is-empty' if @prompts.blank? %>" data-controller="chat-scroll">
+  <header class="chat-header">
+    <h1 class="chat-title"><%= @conversation.title.presence || "Untitled conversation" %></h1>
+    <div class="chat-meta">
+      <span class="pill"><%= @conversation.status.presence || "active" %></span>
+    </div>
+  </header>
+
+  <div class="chat-timeline" data-chat-scroll-target="timeline">
+    <div class="chat-inner" id="chat_timeline">
+      <% if @prompts.blank? %>
+        <div class="empty-state">
+          <h2>How can I help?</h2>
+          <p class="muted">Send a message to start this conversation.</p>
+        </div>
+      <% end %>
+
+      <% @prompts.each do |prompt| %>
+        <%= render "prompts/row", prompt: prompt %>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Composer (fixed bottom) -->
+  <div class="composer">
+    <div class="chat-inner">
+      <%= form_with model: @prompt,
+            url: conversation_prompts_path(@conversation),
+            local: false,
+            class: "composer-form",
+            data: { controller: "submit-on-enter", action: "keydown->submit-on-enter#keydown" } do |f| %>
+
+        <div class="composer-input">
+          <%= f.text_area :instruction,
+                id: "composer_instruction",
+                rows: 2,
+                placeholder: "Message… (Enter to send, Shift+Enter for newline)",
+                class: "composer-textarea",
+                data: { "submit-on-enter-target": "input" } %>
+        </div>
+
+        <div class="composer-actions" id="composer_actions">
+          <%= render "conversations/composer_actions" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

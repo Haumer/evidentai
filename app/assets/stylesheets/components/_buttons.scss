@@ -1,0 +1,48 @@
+.btn {
+  border-radius: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+
+  &:hover { background: rgba(0,0,0,0.03); }
+}
+
+.btn-primary {
+  border-color: rgba(10,132,255,0.30);
+  background: rgba(10,132,255,0.12);
+
+  &:hover { background: rgba(10,132,255,0.16); }
+}
+
+.btn-secondary { opacity: 0.9; }
+.btn-block { width: 100%; }
+
+.btn-link {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: var(--muted);
+  cursor: pointer;
+}
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-send {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 999px;
+  border-color: rgba(10,132,255,0.30);
+  background: rgba(10,132,255,0.16);
+
+  &:hover { background: rgba(10,132,255,0.20); }
+}

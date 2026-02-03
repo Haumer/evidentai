@@ -10,9 +10,29 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body><%= render "shared/navbar" %>
-<%= render "shared/flashes" %>
+  <body>
+    <%#= render "shared/navbar" %>
+    <%#= render "shared/flashes" %>
 
-    <%= yield %>
+    <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">EvidentAI</div>
+        <%= button_to "New", conversations_path, method: :post, class: "btn btn-secondary btn-block" %>
+      </div>
+
+      <div class="sidebar-list">
+        <%= render "conversations/sidebar", conversations: (@conversations || []) %>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="small muted"><%= current_user.email %></div>
+        <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "btn btn-link" %>
+      </div>
+    </aside>
+
+    <main class="main">
+      <%= yield %>
+    </main>
   </body>
 </html>

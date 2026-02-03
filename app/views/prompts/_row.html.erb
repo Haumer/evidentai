@@ -1,0 +1,26 @@
+<!-- User -->
+<div class="message message-user">
+  <div class="message-bubble">
+    <div class="message-label">You</div>
+    <div class="message-text">
+      <%= simple_format(h(prompt.instruction.to_s)) %>
+    </div>
+
+    <% if prompt.attachments.any? %>
+      <div class="attachments">
+        <% prompt.attachments.each do |a| %>
+          <div class="attachment-chip">
+            <span class="attachment-kind"><%= a.kind.presence || "attachment" %></span>
+            <span class="attachment-title"><%= a.title.presence || "Untitled" %></span>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div class="message-foot">
+      <span class="muted small"><%= prompt.created_at.strftime("%H:%M") %></span>
+    </div>
+  </div>
+</div>
+
+<%= render "prompts/assistant", prompt: prompt %>
