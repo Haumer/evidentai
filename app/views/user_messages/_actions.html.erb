@@ -1,0 +1,14 @@
+<% actions = actions.is_a?(Array) ? actions : [] %>
+
+<% if actions.any? %>
+  <div class="actions-row">
+    <% actions.each do |a| %>
+      <% type = a["type"].to_s %>
+      <% title = a["title"].presence || type.humanize %>
+
+      <button class="btn btn-secondary" disabled>
+        <%= h(title) %>
+      </button>
+    <% end %>
+  </div>
+<% end %>

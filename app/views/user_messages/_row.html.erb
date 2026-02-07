@@ -1,0 +1,48 @@
+<%# app/views/user_messages/_row.html.erb %>
+
+<!-- User message -->
+<div class="message message-user">
+  <div class="message-bubble">
+    <div class="message-label">You</div>
+
+    <div class="message-text">
+      <%= simple_format(h(user_message.instruction.to_s)) %>
+    </div>
+
+    <% if user_message.attachments.any? %>
+      <div class="attachments">
+        <% user_message.attachments.each do |a| %>
+          <div class="attachment-chip">
+            <span class="attachment-kind"><%= a.kind.presence || "attachment" %></span>
+            <span class="attachment-title"><%= a.title.presence || "Untitled" %></span>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div class="message-foot">
+      <span class="muted small">
+        <%= user_message.created_at.strftime("%H:%M") %>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- Assistant message (Turbo replace target) -->
+<div id="assistant_user_message_<%= user_message.id %>">
+  <% if user_message.ai_message.present? %>
+    <%= render partial: "user_messages/assistant",
+               locals: { user_message: user_message } %>
+  <% elsif user_message.status == "running" %>
+    <%= render partial: "user_messages/assistant_stream",
+               locals: { user_message: user_message, accumulated: "" } %>
+  <% end %>
+</div>
+
+<!-- Assistant actions (Turbo replace target) -->
+<div id="assistant_actions_user_message_<%= user_message.id %>">
+  <% if user_message.ai_message.present? && user_message.ai_message.proposed_actions.any? %>
+    <%= render partial: "user_messages/assistant_actions",
+               locals: { user_message: user_message } %>
+  <% end %>
+</div>

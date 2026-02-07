@@ -1,36 +1,25 @@
+# frozen_string_literal: true
+
 Rails.application.routes.draw do
-  resources :conversations
-  resources :outputs
-  resources :attachments
-  resources :prompts
+  devise_for :users
+
+  # ---- Core app ----
+  resources :chats, only: [:index, :show, :create, :update, :destroy] do
+    resources :user_messages, only: [:create]
+  end
+
+  # ---- Read-only AI outputs ----
+  resources :ai_messages, only: [:show]
+  resources :artifacts, only: [:show]
+
+  # ---- Supporting ----
+  resources :attachments, only: [:create, :destroy]
   resources :memberships
   resources :companies
-  devise_for :users
-  root to: "pages#home"
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
+  # ---- System ----
+  get "/setup", to: "pages#setup", as: :setup
   get "up" => "rails/health#show", as: :rails_health_check
 
-  # Defines the root path route ("/")
-  # root "posts#index"
-  resources :companies do
-    resources :memberships, shallow: true
-  end
-
-  resources :prompts do
-    resources :attachments
-    resources :outputs
-  end
-  resources :conversations do
-    resources :prompts, only: [:create]
-  end
-
-  resources :prompts, only: [:show] do
-    post :submit, on: :member
-    get :status, on: :member
-  end
-
-  get "/setup", to: "pages#setup", as: :setup
+  root to: "chats#index"
 end

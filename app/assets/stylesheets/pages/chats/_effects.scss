@@ -1,0 +1,33 @@
+/* app/assets/stylesheets/pages/chats/_effects.scss */
+/* Shared shimmer/skeleton effects used by chat + artifact */
+
+@keyframes ghostShimmer {
+  0%   { background-position: 140% 0; }
+  100% { background-position: -80% 0; }
+}
+
+/* Base shimmer bar */
+.ghost-line,
+.skel-line {
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg,
+      rgba(0,0,0,0.06) 0%,
+      rgba(0,0,0,0.10) 20%,
+      rgba(0,0,0,0.06) 40%,
+      rgba(0,0,0,0.06) 100%);
+  background-size: 220% 100%;
+  animation: ghostShimmer 1.15s ease-in-out infinite;
+}
+
+/* Heights differ by usage */
+.ghost-line { height: 12px; }
+.skel-line  { height: 10px; margin: 10px 0; }
+
+/* Width helpers (used by both) */
+.w-40 { width: 40%; }
+.w-55 { width: 55%; }
+.w-60 { width: 60%; }
+.w-70 { width: 70%; }
+.w-75 { width: 75%; }
+.w-90 { width: 90%; }

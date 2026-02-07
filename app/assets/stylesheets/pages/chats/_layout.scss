@@ -1,0 +1,45 @@
+/* app/assets/stylesheets/pages/chats/_layout.scss */
+/* Split view layout (chat + artifact) */
+
+.main {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.chat-layout {
+  height: 100%;
+  display: grid;
+
+  /* 40% chat / 60% output */
+  grid-template-columns: minmax(420px, 50fr) minmax(520px, 50fr);
+
+  gap: 0;
+}
+
+.chat-pane {
+  height: 100%;
+  min-width: 0; /* critical: allow internal overflow/ellipsis */
+  border-right: 1px solid var(--border);
+  background: var(--bg);
+
+  /* Ensure the composer (position:absolute) is constrained to the chat pane,
+     not the entire .main (which spans both chat + artifact columns). */
+  position: relative;
+  overflow: hidden;
+}
+
+/* Responsive: collapse to single column on narrow widths */
+@media (max-width: 980px) {
+  .chat-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-pane {
+    border-right: 0;
+  }
+
+  .artifact-pane {
+    display: none; /* keep mobile simple for now */
+  }
+}

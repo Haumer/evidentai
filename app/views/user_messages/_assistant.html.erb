@@ -1,0 +1,23 @@
+<%# app/views/user_messages/_assistant.html.erb %>
+
+<% text = user_message.ai_message&.content&.dig("text").to_s %>
+
+<div id="assistant_user_message_<%= user_message.id %>">
+  <div class="message message-assistant">
+    <div class="message-bubble">
+      <div class="message-label">Assistant</div>
+
+      <div class="message-text">
+        <%= render_markdown(text) %>
+      </div>
+
+      <div class="message-foot">
+        <span class="muted small"><%= user_message.updated_at.strftime("%H:%M") %></span>
+      </div>
+
+      <% if user_message.ai_message.present? && user_message.ai_message.proposed_actions.any? %>
+        <%= render partial: "user_messages/assistant_actions", locals: { user_message: user_message } %>
+      <% end %>
+    </div>
+  </div>
+</div>

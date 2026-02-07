@@ -1,0 +1,102 @@
+<%# app/views/chats/show.html.erb %>
+
+<%= turbo_stream_from @chat %>
+
+<div class="chat-layout">
+
+  <!-- LEFT: Chat -->
+  <section class="chat-pane">
+    <div class="chat <%= 'is-empty' if @user_messages.blank? %>" data-controller="chat-scroll">
+      <header class="chat-header">
+        <h1 class="chat-title">
+          <%= @chat.title.presence || "Untitled chat" %>
+        </h1>
+        <div class="chat-meta">
+          <span class="pill"><%= @chat.status.presence || "active" %></span>
+        </div>
+      </header>
+
+      <!-- Timeline -->
+      <div class="chat-timeline" data-chat-scroll-target="timeline">
+        <div class="chat-inner" id="chat_timeline">
+          <% if @user_messages.blank? %>
+            <div class="empty-state">
+              <h2>How can I help?</h2>
+              <p class="muted">Send a message to start this chat.</p>
+            </div>
+          <% end %>
+
+          <% @user_messages.each do |user_message| %>
+            <%= render partial: "user_messages/row",
+                       locals: { user_message: user_message } %>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Composer -->
+      <div class="composer">
+        <div class="chat-inner">
+          <%= form_with model: @user_message,
+                url: chat_user_messages_path(@chat),
+                local: false,
+                class: "composer-form",
+                data: {
+                  controller: "submit-on-enter",
+                  action: "keydown->submit-on-enter#keydown"
+                } do |f| %>
+
+            <div class="composer-input">
+              <%= f.text_area :instruction,
+                    id: "composer_instruction",
+                    rows: 2,
+                    placeholder: "Message… (Enter to send, Shift+Enter for newline)",
+                    class: "composer-textarea",
+                    data: { "submit-on-enter-target": "input" } %>
+            </div>
+
+            <div class="composer-actions" id="composer_actions">
+              <%= render "chats/composer_actions" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RIGHT: Output / Artifact -->
+  <aside class="artifact-pane">
+    <div id="artifact_live">
+      <!-- STABLE TARGET: must ALWAYS exist -->
+      <div id="artifact_content">
+        <%
+          artifact_text =
+            if @artifact.present?
+              if @artifact.respond_to?(:content) && @artifact.content.present?
+                @artifact.content.is_a?(Hash) ? @artifact.content["text"].to_s : @artifact.content.to_s
+              elsif @artifact.respond_to?(:data) && @artifact.data.present?
+                @artifact.data.is_a?(Hash) ? @artifact.data["text"].to_s : @artifact.data.to_s
+              elsif @artifact.respond_to?(:body) && @artifact.body.present?
+                @artifact.body.to_s
+              elsif @artifact.respond_to?(:text) && @artifact.text.present?
+                @artifact.text.to_s
+              else
+                ""
+              end
+            else
+              @user_messages.reverse_each.lazy
+                .map { |um| um.ai_message&.content&.dig("preview").to_s }
+                .find { |t| t.present? }.to_s
+            end
+        %>
+
+        <%= render partial: "chats/artifact_preview",
+                   locals: {
+                     text: artifact_text,
+                     status: (artifact_text.present? ? "draft" : "waiting")
+                   } %>
+      </div>
+    </div>
+  </aside>
+
+
+</div>

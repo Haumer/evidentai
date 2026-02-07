@@ -1,0 +1,17 @@
+<%# app/views/chats/_sidebar.html.erb %>
+
+<% chats.each do |chat| %>
+  <% active = (defined?(@chat) && @chat&.id == chat.id) %>
+
+  <%= link_to chat_path(chat),
+        class: "sidebar-item #{'is-active' if active}" do %>
+
+    <div class="sidebar-item-title">
+      <%= chat.title.presence || "Untitled" %>
+    </div>
+
+    <div class="sidebar-item-sub">
+      <%= chat.updated_at.strftime("%d %b") %>
+    </div>
+  <% end %>
+<% end %>

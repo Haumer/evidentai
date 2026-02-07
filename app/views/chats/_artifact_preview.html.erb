@@ -1,0 +1,58 @@
+<%# app/views/chats/_artifact_preview.html.erb %>
+
+<%
+  status ||= "waiting"
+  status = status.to_s
+  is_working = (status == "working")
+  has_text = text.to_s.strip.present?
+%>
+
+<header class="artifact-header">
+  <div class="artifact-header-left">
+    <h2 class="artifact-title">Output</h2>
+    <div class="artifact-subtitle">
+      <% if is_working %>
+        <%= has_text ? "Updating…" : "Generating…" %>
+      <% else %>
+        <%= has_text ? "" : "No output yet" %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="artifact-header-right">
+    <% if is_working %>
+      <div class="artifact-working is-active" aria-live="polite">
+        <span class="artifact-spinner" aria-hidden="true"></span>
+        <span class="artifact-working-text">Generating…</span>
+      </div>
+    <% end %>
+
+    <span class="pill <%= "is-live" if has_text %> <%= "is-working" if is_working %>">
+      <span class="pill-dot"></span>
+      <%= is_working ? "working" : (has_text ? "ready" : "waiting") %>
+    </span>
+  </div>
+</header>
+
+<div class="artifact-inner">
+  <% if has_text %>
+    <div class="artifact-card">
+      <div class="artifact-card__label">Artifact</div>
+      <div class="artifact-card__body">
+        <%= render_markdown(text) %>
+      </div>
+    </div>
+  <% else %>
+    <div class="artifact-empty-card">
+      <h3>No output yet</h3>
+      <p class="muted">As you chat, the generated result will appear here.</p>
+
+      <div class="artifact-skeleton" aria-hidden="true">
+        <div class="skel-line w-70"></div>
+        <div class="skel-line w-90"></div>
+        <div class="skel-line w-55"></div>
+        <div class="skel-line w-75"></div>
+      </div>
+    </div>
+  <% end %>
+</div>

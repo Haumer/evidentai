@@ -1,0 +1,21 @@
+<%# app/views/user_messages/_assistant_stream.html.erb %>
+
+<div id="assistant_user_message_<%= user_message.id %>">
+  <div class="message message-assistant is-streaming">
+    <div class="message-bubble">
+      <div class="message-label">Assistant</div>
+
+      <% if accumulated.to_s.strip.present? %>
+        <div class="message-text">
+          <%= render_markdown(accumulated.to_s) %>
+        </div>
+      <% else %>
+        <div class="assistant-ghost" aria-hidden="true">
+          <div class="ghost-line w-60"></div>
+          <div class="ghost-line w-90"></div>
+          <div class="ghost-line w-75"></div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

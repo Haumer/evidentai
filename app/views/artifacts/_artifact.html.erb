@@ -1,0 +1,54 @@
+<%# app/views/artifacts/_artifact.html.erb %>
+
+<% text =
+     begin
+       # Prefer common columns in order, but handle both Hash and String values.
+       if artifact.respond_to?(:content)
+         v = artifact.content
+         if v.is_a?(Hash)
+           v["text"].to_s
+         else
+           v.to_s
+         end
+       elsif artifact.respond_to?(:data)
+         v = artifact.data
+         if v.is_a?(Hash)
+           v["text"].to_s
+         else
+           v.to_s
+         end
+       elsif artifact.respond_to?(:body)
+         artifact.body.to_s
+       elsif artifact.respond_to?(:text)
+         artifact.text.to_s
+       else
+         ""
+       end
+     rescue
+       ""
+     end %>
+
+<div class="artifact-empty">
+  <h3>Output</h3>
+  <p class="muted" style="margin-top: 6px;">
+    Saved artifact
+  </p>
+
+  <% if text.to_s.strip.present? %>
+    <div class="message-bubble" style="margin-top: 14px;">
+      <div class="message-label">Artifact</div>
+      <div class="message-text">
+        <%= render_markdown(text) %>
+      </div>
+    </div>
+  <% else %>
+    <div class="message-bubble" style="margin-top: 14px;">
+      <div class="message-label">Artifact</div>
+      <div class="message-text">
+        <p class="muted" style="margin: 0;">
+          Waiting for instructions — describe what you want to produce.
+        </p>
+      </div>
+    </div>
+  <% end %>
+</div>
