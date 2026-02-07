@@ -52,10 +52,10 @@
   font-size: 12px;
   color: var(--muted);
   line-height: 1.2;
-  min-height: 1.2em; /* keep header height stable */
+  min-height: 1.2em;
 }
 
-/* Shared pill (also used in chat header) */
+/* Shared pill */
 .pill {
   display: inline-flex;
   align-items: center;
@@ -94,19 +94,22 @@
 /* Body */
 .artifact-inner {
   padding: 18px 22px 28px;
-
-  /* Allow artifact to use available pane width */
   max-width: none;
+}
 
-  /* But keep content readable on very wide screens */
-  margin: 0 auto;
+/* IFRAME: fill available viewport height and grow with content */
+.artifact-frame {
+  display: block;
+  width: 100%;
+  min-height: calc(100vh - 160px); /* header + padding + safety */
+  height: auto;
+
+  border: 0;
+  border-radius: 16px;
+  background: #fff;
 }
 
 /* Empty state */
-.artifact-empty {
-  padding: 0;
-}
-
 .artifact-empty-card {
   padding: 18px;
   border-radius: 16px;
@@ -114,47 +117,13 @@
   background: rgba(255,255,255,0.75);
 }
 
-.artifact-empty h3 {
-  margin: 0 0 6px;
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: -0.1px;
-}
-
-.artifact-empty p {
-  margin: 0;
-  color: rgba(0,0,0,0.65);
-  line-height: 1.45;
-}
-
-/* Skeleton block */
+/* Skeleton */
 .artifact-skeleton {
   margin-top: 14px;
   padding: 14px 16px;
   border-radius: 16px;
   border: 1px solid rgba(0,0,0,0.06);
   background: rgba(255,255,255,0.60);
-}
-
-/* Artifact output card */
-.artifact-card {
-  border-radius: 18px;
-  border: 1px solid rgba(0,0,0,0.08);
-  background: rgba(255,255,255,0.82);
-  box-shadow: 0 10px 28px rgba(0,0,0,0.05);
-  padding: 16px 16px 18px;
-}
-
-.artifact-card__label {
-  font-size: 12px;
-  font-weight: 700;
-  color: rgba(0,0,0,0.52);
-  margin-bottom: 10px;
-}
-
-.artifact-card__body {
-  font-size: 14px;
-  line-height: 1.55;
 }
 
 /* Working indicator */

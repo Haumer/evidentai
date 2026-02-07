@@ -36,12 +36,12 @@
 
 <div class="artifact-inner">
   <% if has_text %>
-    <div class="artifact-card">
-      <div class="artifact-card__label">Artifact</div>
-      <div class="artifact-card__body">
-        <%= render_markdown(text) %>
-      </div>
-    </div>
+    <iframe
+      class="artifact-frame"
+      sandbox=""
+      referrerpolicy="no-referrer"
+      srcdoc="<%= text %>">
+    </iframe>
   <% else %>
     <div class="artifact-empty-card">
       <h3>No output yet</h3>
