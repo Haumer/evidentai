@@ -4,6 +4,10 @@ import { Controller } from "@hotwired/stimulus"
 // Shift+Enter inserts a newline.
 // Works with Turbo (local: false) and ensures the form never gets "stuck".
 // Clears the textarea and re-enables controls after Turbo completes the request.
+//
+// Extended behavior:
+// - If the server marks the composer as "busy" (artifact regenerating),
+//   do NOT allow submits and do NOT re-enable the submit button.
 export default class extends Controller {
   static targets = ["input"]
 
@@ -30,7 +34,6 @@ export default class extends Controller {
     // Only handle Enter in the textarea
     if (!this.hasInputTarget) return
     if (e.target !== this.inputTarget) return
-
     if (e.key !== "Enter") return
 
     // Shift+Enter => newline
@@ -39,7 +42,9 @@ export default class extends Controller {
     // Enter => submit
     e.preventDefault()
 
+    // Block while this request is in-flight OR while server says we're busy
     if (this.sending) return
+    if (this.isBusy()) return
 
     const text = (this.inputTarget.value || "").trim()
     if (text.length === 0) return
@@ -54,8 +59,10 @@ export default class extends Controller {
   }
 
   onSubmitEnd(e) {
-    // Always unlock, even on error
+    // Always unlock local "sending" state, even on error
     this.sending = false
+
+    // Re-enable controls, but keep submit disabled if server marked busy
     this.enableControls()
 
     // Clear input on success (HTTP 2xx)
@@ -67,6 +74,15 @@ export default class extends Controller {
     }
   }
 
+  // Server-driven busy flag:
+  // When artifact generation is running, the composer submit button will have:
+  // data-evidentai-busy="true"
+  isBusy() {
+    const submit = this.element.querySelector('button[type="submit"], input[type="submit"]')
+    if (!submit) return false
+    return submit.dataset?.evidentaiBusy === "true"
+  }
+
   disableControls() {
     // Keep it minimal: disable only the submit button + textarea
     // (attachment button etc can stay disabled by your own UI state)
@@ -76,7 +92,15 @@ export default class extends Controller {
   }
 
   enableControls() {
-    this.element.querySelectorAll('textarea, button[type="submit"], input[type="submit"]').forEach((el) => {
+    // Always re-enable textarea
+    this.element.querySelectorAll("textarea").forEach((el) => {
+      el.disabled = false
+    })
+
+    // Only re-enable submit if server is NOT marking us as busy
+    const busy = this.isBusy()
+    this.element.querySelectorAll('button[type="submit"], input[type="submit"]').forEach((el) => {
+      if (busy) return
       el.disabled = false
     })
   }

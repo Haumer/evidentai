@@ -31,3 +31,75 @@
 .w-70 { width: 70%; }
 .w-75 { width: 75%; }
 .w-90 { width: 90%; }
+
+
+/* app/assets/stylesheets/pages/chats/_effects.scss */
+/* Micro-interactions: skeletons, spinners, shimmer, subtle status UI */
+
+/* Force run-status to sit below the assistant bubble, not beside it */
+.message.message-assistant {
+  flex-wrap: wrap;
+}
+
+.message.message-assistant .message-bubble {
+  flex: 0 0 100%;
+}
+
+/* Status container becomes its own full-width row under the bubble */
+.assistant-run-status {
+  flex: 0 0 100%;
+  width: 100%;
+  margin-top: 10px;
+
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* Base pill */
+.run-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 6px 10px;
+  border-radius: 999px;
+
+  font-size: 12px;
+  line-height: 1;
+  color: var(--muted);
+
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--border);
+}
+
+/* Orange “working” state */
+.run-status--working {
+  color: rgba(154, 83, 0, 1);
+  background: rgba(255, 149, 0, 0.12);
+  border-color: rgba(255, 149, 0, 0.35);
+}
+
+.run-status__text {
+  white-space: nowrap;
+}
+
+.run-status__spinner {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 149, 0, 0.25);
+  border-top-color: rgba(255, 149, 0, 0.9);
+  animation: evidentai-spin 0.9s linear infinite;
+}
+
+/* Ready dot can remain blue (or neutral); leaving as-is */
+.run-status__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(10, 132, 255, 0.85);
+}
+
+@keyframes evidentai-spin {
+  to { transform: rotate(360deg); }
+}

@@ -6,6 +6,11 @@ Rails.application.routes.draw do
   # ---- Core app ----
   resources :chats, only: [:index, :show, :create, :update, :destroy] do
     resources :user_messages, only: [:create]
+    member do
+      get :edit_title
+      get :sidebar_title
+      patch :update_title
+    end
   end
 
   # ---- Read-only AI outputs ----

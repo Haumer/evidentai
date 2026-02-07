@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_06_102219) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_07_203135) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -102,6 +102,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_06_102219) do
     t.string "status"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "title_set_by_user", default: false, null: false
+    t.datetime "title_generated_at"
     t.index ["company_id"], name: "index_chats_on_company_id"
     t.index ["created_by_id"], name: "index_chats_on_created_by_id"
   end

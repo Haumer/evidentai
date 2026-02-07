@@ -5,6 +5,9 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+
+  /* Anchor the absolute composer to this column */
+  position: relative;
 }
 
 .chat-header {
@@ -23,11 +26,50 @@
   font-weight: 700;
 }
 
-/* tighter + more “alive” scroll spacing */
+/* Scroll area ends ABOVE the composer (no overlap, no fake empty scroll) */
 .chat-timeline {
   flex: 1;
   overflow: auto;
-  padding: 22px 22px 140px; /* composer still has room */
+
+  /* Normal padding only */
+  padding: 22px;
+
+  /* Reserve space for the absolute composer so the scroll viewport ends above it */
+  margin-bottom: 120px; /* tuned to current composer height */
+}
+
+/* Run status (pinned above composer so it’s always visible) */
+.chat-run-status {
+  position: sticky;
+  bottom: 96px; /* sits above composer within the scroll viewport */
+  z-index: 4;
+
+  display: flex;
+  justify-content: center;
+  margin: 10px 0 0;
+
+  pointer-events: none;
+}
+
+.chat-run-status .pill {
+  pointer-events: auto;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+}
+
+.run-spinner {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(0,0,0,0.16);
+  border-top-color: rgba(255, 149, 0, 0.95);
+  animation: runSpin 700ms linear infinite;
+  transform: translateY(1px);
+}
+
+@keyframes runSpin {
+  to { transform: translateY(1px) rotate(360deg); }
 }
 
 /* Messages */
@@ -115,6 +157,7 @@
   left: 0;
   right: 0;
   bottom: 0;
+
   padding: 14px 22px 18px;
   border-top: 1px solid var(--border);
   background: rgba(245,245,247,0.85);

@@ -14,10 +14,9 @@
       <div class="message-foot">
         <span class="muted small"><%= user_message.updated_at.strftime("%H:%M") %></span>
       </div>
-
-      <% if user_message.ai_message.present? && user_message.ai_message.proposed_actions.any? %>
-        <%= render partial: "user_messages/assistant_actions", locals: { user_message: user_message } %>
-      <% end %>
     </div>
+
+    <%# Status indicator lives directly below the assistant message bubble %>
+    <%= render partial: "chats/run_status", locals: { user_message: user_message, state: "idle" } %>
   </div>
 </div>

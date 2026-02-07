@@ -30,6 +30,9 @@
             <%= render partial: "user_messages/row",
                        locals: { user_message: user_message } %>
           <% end %>
+
+          <!-- Stable target for "Updating output…" status inside the chat -->
+          <div id="chat_run_status"></div>
         </div>
       </div>
 

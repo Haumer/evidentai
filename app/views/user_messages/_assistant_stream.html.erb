@@ -17,5 +17,8 @@
         </div>
       <% end %>
     </div>
+
+    <%# Keep the target present while streaming too %>
+    <%= render partial: "chats/run_status", locals: { user_message: user_message, state: "idle" } %>
   </div>
 </div>

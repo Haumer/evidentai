@@ -1,0 +1,23 @@
+<%# app/views/chats/_sidebar_title_form.html.erb %>
+
+<%# Expects: chat %>
+
+<%= turbo_frame_tag dom_id(chat, :sidebar_title) do %>
+  <%= form_with model: chat, url: update_title_chat_path(chat), method: :patch, class: "sidebar-chat__title-form" do |f| %>
+    <%= f.text_field :title,
+          value: chat.title,
+          class: "sidebar-chat__title-input",
+          autocomplete: "off",
+          placeholder: "Untitled",
+          autofocus: true %>
+
+    <div class="sidebar-chat__title-actions">
+      <%= f.submit "Save", class: "sidebar-chat__title-save" %>
+
+      <%= link_to "Cancel",
+            sidebar_title_chat_path(chat),
+            class: "sidebar-chat__title-cancel",
+            data: { turbo_frame: dom_id(chat, :sidebar_title) } %>
+    </div>
+  <% end %>
+<% end %>

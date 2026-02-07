@@ -1,7 +1,7 @@
 # app/controllers/chats_controller.rb
 class ChatsController < ApplicationController
-  before_action :set_chat, only: %i[show edit update destroy]
   before_action :ensure_membership!
+  before_action :set_chat, only: %i[show edit update destroy edit_title update_title sidebar_title]
 
   def index
     @chats = Chat.where(company: @company).order(updated_at: :desc)
@@ -32,6 +32,32 @@ class ChatsController < ApplicationController
 
   # GET /chats/1/edit
   def edit
+  end
+
+  # Sidebar inline title edit (Turbo Frame)
+  # GET /chats/:id/edit_title
+  def edit_title
+    render partial: "chats/sidebar_title_form", locals: { chat: @chat }
+  end
+
+  # Sidebar inline title display (Turbo Frame)
+  # GET /chats/:id/sidebar_title
+  def sidebar_title
+    render partial: "chats/sidebar_title", locals: { chat: @chat }
+  end
+
+  # Sidebar inline title update (Turbo Frame)
+  # PATCH /chats/:id/update_title
+  def update_title
+    title = params.require(:chat).fetch(:title).to_s.strip
+    title = title.presence
+
+    @chat.update!(
+      title: title,
+      title_set_by_user: true
+    )
+
+    render partial: "chats/sidebar_title", locals: { chat: @chat }
   end
 
   # POST /chats
@@ -67,11 +93,11 @@ class ChatsController < ApplicationController
   private
 
   def set_chat
-    @chat = Chat.find(params[:id])
+    @chat = Chat.where(company: @company).find(params[:id])
   end
 
   def chat_params
-    params.require(:chat).permit(:company_id, :created_by_id, :title, :status)
+    params.require(:chat).permit(:title, :status)
   end
 
   def ensure_membership!

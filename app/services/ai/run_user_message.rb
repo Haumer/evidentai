@@ -24,6 +24,9 @@ module Ai
     DEFAULT_PROVIDER = ENV.fetch("AI_PROVIDER", "openai").freeze
     BROADCAST_EVERY_N_CHARS = 10
 
+    # Ensures the "Updating output…" indicator is perceptible.
+    MIN_OUTPUT_WORKING_MS = 350
+
     def initialize(user_message:, context: nil)
       @user_message = user_message
       @chat = user_message.chat
@@ -96,6 +99,11 @@ module Ai
     # ------------------------------------------------------------
 
     def update_artifact!(ai_message)
+      started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+
+      # Show "Updating output…" inside the chat (under this assistant message).
+      run_status_broadcaster.working
+
       # UX: immediately indicate the artifact is being regenerated.
       # Keep showing the previous output while working.
       previous_text = current_artifact_text.to_s
@@ -109,9 +117,16 @@ module Ai
         content: (ai_message.content || {}).merge("preview" => text)
       ) rescue nil
 
-      # UX: broadcast final output ASAP so the UI flips out of "working" immediately,
-      # even if persistence is slow or fails.
+      # UX: broadcast final output ASAP
       artifact_broadcaster.replace(text: text, status: "ready")
+
+      # Ensure the "working" indicator is visible for a beat (calm UX).
+      elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000.0).round
+      remaining_ms = MIN_OUTPUT_WORKING_MS - elapsed_ms
+      sleep(remaining_ms / 1000.0) if remaining_ms.positive?
+
+      # Mark ready in chat now that artifact is rendered.
+      run_status_broadcaster.ready
 
       # Persistence should not block UI updates.
       persist_artifact!(text)
@@ -120,6 +135,8 @@ module Ai
         text: "⚠️ Failed to generate output: #{e.message}",
         status: "ready"
       )
+
+      run_status_broadcaster.ready rescue nil
     end
 
     def generate_artifact_text
@@ -131,7 +148,6 @@ module Ai
         model: DEFAULT_MODEL
       )
 
-      # Ai::Client normalizes provider results to { text:, raw: }
       result.fetch(:text).to_s
     end
 
@@ -189,16 +205,19 @@ module Ai
       @artifact_broadcaster ||= Ai::Chat::Broadcast::ArtifactBroadcaster.new(chat: @chat)
     end
 
+    def run_status_broadcaster
+      @run_status_broadcaster ||= Ai::Chat::Broadcast::RunStatusBroadcaster.new(
+        chat: @chat,
+        user_message: @user_message
+      )
+    end
+
     # ------------------------------------------------------------
     # Actions (third AI call)
     # ------------------------------------------------------------
 
     def extract_actions!
       Ai::ExtractProposedActions.new(user_message: @user_message, context: context_text).call!
-
-      # UX: do not show proposed actions in the UI for now.
-      # (Records still exist and can be used later.)
-      # Ai::Chat::Broadcast::ActionsBroadcaster.new(user_message: @user_message).replace
     end
 
     # ------------------------------------------------------------

@@ -1,2 +1,15 @@
+<%# app/views/chats/_composer_actions.html.erb %>
+
+<%
+  disabled = !!local_assigns[:disabled]
+%>
+
 <button type="button" class="btn btn-icon btn-secondary" disabled>+</button>
-<button type="submit" class="btn btn-send">↑</button>
+
+<button
+  type="submit"
+  class="btn btn-send"
+  <%= "disabled" if disabled %>
+  <%= %(data-evidentai-busy="true") if disabled %>>
+  ↑
+</button>

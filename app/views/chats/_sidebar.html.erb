@@ -1,17 +1,26 @@
 <%# app/views/chats/_sidebar.html.erb %>
 
-<% chats.each do |chat| %>
-  <% active = (defined?(@chat) && @chat&.id == chat.id) %>
+<%# Expects: chats (Array/Relation), and optionally @chat for active state %>
 
-  <%= link_to chat_path(chat),
-        class: "sidebar-item #{'is-active' if active}" do %>
+<% (chats || []).each do |c| %>
+  <% active = defined?(@chat) && @chat.present? && @chat.id == c.id %>
 
-    <div class="sidebar-item-title">
-      <%= chat.title.presence || "Untitled" %>
-    </div>
+  <% ts = c.updated_at.in_time_zone %>
+  <% stamp = ts.strftime("%d. %b %H:%M") %>
 
+  <div
+    id="<%= dom_id(c, :sidebar_row) %>"
+    class="sidebar-item <%= "is-active" if active %>"
+  >
+    <%# Click anywhere on the row to open the chat %>
+    <%= link_to "", chat_path(c), class: "sidebar-item__open", aria: { label: "Open chat" } %>
+
+    <%# Title: click to rename (Turbo Frame inline edit) %>
+    <%= render partial: "chats/sidebar_title", locals: { chat: c } %>
+
+    <%# Timestamp: informational only (not a link) %>
     <div class="sidebar-item-sub">
-      <%= chat.updated_at.strftime("%d %b") %>
+      <%= stamp %>
     </div>
-  <% end %>
+  </div>
 <% end %>

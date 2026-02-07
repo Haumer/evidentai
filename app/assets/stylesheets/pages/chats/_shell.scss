@@ -42,10 +42,10 @@
 }
 
 .sidebar-item {
+  position: relative;
   display: block;
   padding: 10px 12px;
   border-radius: 12px;
-  text-decoration: none;
   color: var(--text);
   margin-bottom: 8px;
   border: 1px solid transparent;
@@ -58,6 +58,23 @@
   }
 }
 
+/* Full-row clickable overlay */
+.sidebar-item__open {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: 12px;
+  text-decoration: none;
+}
+
+/* Make non-interactive content click-through so the overlay link works */
+.sidebar-item__title-frame,
+.sidebar-item__meta {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+
 .sidebar-item-title {
   font-size: 14px;
   font-weight: 650;
@@ -68,4 +85,71 @@
   font-size: 12px;
   color: var(--muted);
   margin-top: 2px;
+}
+
+/* Re-enable pointer events only for the actual title link (edit-in-place) */
+.sidebar-chat__title-link {
+  pointer-events: auto;
+  position: relative;
+  z-index: 3;
+  color: var(--text);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+    text-decoration-color: rgba(0,0,0,0.25);
+  }
+}
+
+/* Inline title editing (must be interactive and above the overlay) */
+.sidebar-chat__title-form {
+  pointer-events: auto;
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-chat__title-input {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 14px;
+  outline: none;
+
+  &:focus {
+    border-color: rgba(10,132,255,0.45);
+    box-shadow: 0 0 0 3px rgba(10,132,255,0.10);
+  }
+}
+
+.sidebar-chat__title-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.sidebar-chat__title-save,
+.sidebar-chat__title-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  padding: 7px 10px;
+  border-radius: 10px;
+
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover { background: rgba(0,0,0,0.03); }
 }
