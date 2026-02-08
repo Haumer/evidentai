@@ -1,0 +1,124 @@
+<%# app/views/chats/_artifact_sheets.html.erb %>
+
+<%# Expects:
+    - datasets: Array of dataset hashes { name, units, schema, rows }
+    - artifact: Artifact (preferred)
+    - chat: Chat (fallback, used to look up artifact if not passed)
+%>
+
+<%
+  chat =
+    local_assigns[:chat] ||
+    (defined?(@chat) && @chat)
+
+  artifact =
+    local_assigns[:artifact] ||
+    (defined?(@artifact) && @artifact)
+
+  if artifact.blank? && chat.present?
+    artifact = Artifact.find_by(chat: chat)
+  end
+
+  editable = artifact.present?
+%>
+
+<div class="artifact-sheets" data-controller="artifact-sheets">
+  <div class="artifact-sheets__bar" role="tablist" aria-label="Data sheets">
+    <button
+      type="button"
+      class="artifact-sheets__toggle"
+      data-action="artifact-sheets#toggle"
+      aria-expanded="false"
+      data-artifact-sheets-target="toggle">
+      Data
+    </button>
+
+    <div class="artifact-sheets__tabs" data-artifact-sheets-target="tabs">
+      <% datasets.each_with_index do |ds, idx| %>
+        <% label = ds.is_a?(Hash) ? (ds["name"].presence || "Sheet #{idx + 1}") : "Sheet #{idx + 1}" %>
+        <button
+          type="button"
+          class="artifact-sheets__tab <%= "is-active" if idx == 0 %>"
+          role="tab"
+          aria-selected="<%= idx == 0 %>"
+          data-action="artifact-sheets#select"
+          data-index="<%= idx %>"
+          data-artifact-sheets-target="tab">
+          <%= label %>
+        </button>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="artifact-sheets__drawer" data-artifact-sheets-target="drawer" hidden>
+    <div class="artifact-sheets__drawer-header">
+      <div class="artifact-sheets__drawer-title" data-artifact-sheets-target="drawerTitle">
+        <%= (datasets.first.is_a?(Hash) ? datasets.first["name"] : nil).presence || "Data" %>
+      </div>
+
+      <button type="button" class="artifact-sheets__close" data-action="artifact-sheets#close">
+        Close
+      </button>
+    </div>
+
+    <% datasets.each_with_index do |ds, idx| %>
+      <% schema = ds.is_a?(Hash) ? (ds["schema"] || []) : [] %>
+      <% rows   = ds.is_a?(Hash) ? (ds["rows"] || []) : [] %>
+      <% units  = ds.is_a?(Hash) ? ds["units"].to_s : "" %>
+
+      <section
+        class="artifact-sheets__sheet <%= "is-active" if idx == 0 %>"
+        data-artifact-sheets-target="sheet"
+        data-index="<%= idx %>"
+        <%= "hidden" unless idx == 0 %>>
+        <div class="artifact-sheets__meta">
+          <% if units.present? %>
+            <span class="artifact-sheets__meta-pill"><%= units %></span>
+          <% end %>
+
+          <% if editable %>
+            <span class="artifact-sheets__meta-hint">Click a cell to edit.</span>
+          <% else %>
+            <span class="artifact-sheets__meta-hint">Saving artifact… (editing will enable shortly).</span>
+          <% end %>
+        </div>
+
+        <div class="artifact-sheets__table-wrap">
+          <table class="artifact-sheets__table">
+            <thead>
+              <tr>
+                <% schema.each do |col| %>
+                  <th><%= col.to_s %></th>
+                <% end %>
+              </tr>
+            </thead>
+
+            <tbody>
+              <% rows.each_with_index do |row, row_index| %>
+                <tr>
+                  <% Array(row).each_with_index do |cell, col_index| %>
+                    <td>
+                      <% if editable %>
+                        <%= render partial: "chats/artifact_sheets/cell", locals: {
+                          artifact: artifact,
+                          dataset_index: idx,
+                          row_index: row_index,
+                          col_index: col_index,
+                          value: cell,
+                          editing: false,
+                          error: nil
+                        } %>
+                      <% else %>
+                        <%= cell.is_a?(Numeric) ? cell : h(cell.to_s) %>
+                      <% end %>
+                    </td>
+                  <% end %>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    <% end %>
+  </div>
+</div>

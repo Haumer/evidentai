@@ -5,6 +5,40 @@
   status = status.to_s
   is_working = (status == "working")
   has_text = text.to_s.strip.present?
+
+  # Resolve artifact reliably (Turbo broadcasts don't set controller ivars)
+  artifact =
+    local_assigns[:artifact] ||
+    (defined?(@artifact) && @artifact)
+
+  if artifact.blank?
+    chat =
+      local_assigns[:chat] ||
+      (defined?(@chat) && @chat)
+    artifact = Artifact.where(chat_id: chat.id).order(created_at: :desc).first if chat.present?
+  end
+
+  # Dataset discovery (no iframe JS; server-side parse only)
+  # Prefer persisted dataset_json if available; fallback to parsing the HTML.
+  extracted = has_text ? Ai::ArtifactDatasetExtractor.call(text) : { dataset_json: nil, sources_json: nil }
+
+  dataset_payload =
+    if artifact&.respond_to?(:dataset_json) && artifact.dataset_json.present?
+      artifact.dataset_json
+    else
+      extracted[:dataset_json]
+    end
+
+  datasets = dataset_payload.is_a?(Hash) ? (dataset_payload["datasets"] || []) : []
+  datasets = [] unless datasets.is_a?(Array)
+  has_datasets = datasets.any?
+
+  dataset_locked =
+    artifact&.respond_to?(:dataset_locked_by_user?) ? artifact.dataset_locked_by_user? : false
+
+  # IMPORTANT:
+  # Keep dataset OUTSIDE the iframe.
+  iframe_text = has_text ? Ai::ArtifactDatasetStripper.call(text) : ""
 %>
 
 <header class="artifact-header">
@@ -20,6 +54,12 @@
   </div>
 
   <div class="artifact-header-right">
+    <% if dataset_locked %>
+      <span class="pill is-muted" title="This dataset has been edited. AI updates will not overwrite it.">
+        Data edited
+      </span>
+    <% end %>
+
     <% if is_working %>
       <div class="artifact-working is-active" aria-live="polite">
         <span class="artifact-spinner" aria-hidden="true"></span>
@@ -34,14 +74,11 @@
   </div>
 </header>
 
-<div class="artifact-inner">
+<div class="artifact-inner <%= "has-sheets" if has_datasets %>">
   <% if has_text %>
-    <iframe
-      class="artifact-frame"
-      sandbox="allow-popups allow-popups-to-escape-sandbox"
-      referrerpolicy="no-referrer"
-      srcdoc="<%= text %>">
-    </iframe>
+    <%# CRITICAL: this partial must wrap the iframe in turbo_frame_tag "artifact_iframe"
+        so CellsController can turbo_stream.replace("artifact_iframe", ...) %>
+    <%= render partial: "chats/artifact_iframe", locals: { artifact: artifact, text: iframe_text } %>
   <% else %>
     <div class="artifact-empty-card">
       <h3>No output yet</h3>
@@ -56,3 +93,8 @@
     </div>
   <% end %>
 </div>
+
+<%# Bottom "Sheets" bar (only when dataset is present) %>
+<% if has_datasets %>
+  <%= render partial: "chats/artifact_sheets", locals: { artifact: artifact, chat: (defined?(@chat) && @chat), datasets: datasets } %>
+<% end %>

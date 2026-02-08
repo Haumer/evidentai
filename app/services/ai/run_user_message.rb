@@ -110,15 +110,26 @@ module Ai
       artifact_broadcaster.replace(text: previous_text, status: "working")
 
       # Generate the new artifact output (STRING only)
-      text = generate_artifact_text
+      generated_text = generate_artifact_text
+
+      # Parse dataset (if present) from the artifact HTML (data-only, inert in iframe).
+      extracted = Ai::ArtifactDatasetExtractor.call(generated_text)
 
       # Store preview on the ai_message (best-effort)
       ai_message.update!(
-        content: (ai_message.content || {}).merge("preview" => text)
+        content: (ai_message.content || {}).merge("preview" => generated_text)
       ) rescue nil
 
-      # UX: broadcast final output ASAP
-      artifact_broadcaster.replace(text: text, status: "ready")
+      # Persist FIRST (so an Artifact record exists for editing), and compute the final text
+      # that should be displayed (dataset-injected, lock-aware).
+      final_text = persist_artifact_and_prepare_text!(
+        generated_text,
+        dataset_json: extracted[:dataset_json],
+        sources_json: extracted[:sources_json]
+      )
+
+      # UX: broadcast final output ASAP (as a whole, non-streamed)
+      artifact_broadcaster.replace(text: final_text.to_s, status: "ready")
 
       # Ensure the "working" indicator is visible for a beat (calm UX).
       elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000.0).round
@@ -127,9 +138,6 @@ module Ai
 
       # Mark ready in chat now that artifact is rendered.
       run_status_broadcaster.ready
-
-      # Persistence should not block UI updates.
-      persist_artifact!(text)
     rescue => e
       artifact_broadcaster.replace(
         text: "⚠️ Failed to generate output: #{e.message}",
@@ -152,7 +160,7 @@ module Ai
     end
 
     def current_artifact_text
-      artifact = Artifact.find_by(chat: @chat)
+      artifact = Artifact.where(chat_id: @chat.id).order(created_at: :desc).first
       return "" unless artifact
 
       if artifact.respond_to?(:content) && artifact.content.present?
@@ -168,25 +176,72 @@ module Ai
       end
     end
 
-    def persist_artifact!(text)
-      artifact = Artifact.find_or_initialize_by(chat: @chat)
+    # Persists the artifact and returns the FINAL html/text that should be displayed.
+    #
+    # Rules:
+    # - If dataset_locked_by_user = true, never overwrite dataset_json from extracted AI output.
+    # - Always inject the "current" dataset_json (locked or newly-extracted) into the stored HTML
+    #   so the iframe reflects the DB dataset.
+    #
+    # IMPORTANT:
+    # - Schema requires artifacts.company_id, artifacts.created_by_id, artifacts.chat_id (NOT NULL).
+    #   Set *_id fields explicitly to avoid silent failures.
+    def persist_artifact_and_prepare_text!(generated_text, dataset_json: nil, sources_json: nil)
+      artifact = Artifact.find_or_initialize_by(chat_id: @chat.id)
 
-      if artifact.respond_to?(:company=) && artifact.company.blank? && @user_message.respond_to?(:company)
-        artifact.company = @user_message.company
+      # Satisfy NOT NULL constraints reliably.
+      if Artifact.column_names.include?("company_id") && artifact.company_id.blank?
+        artifact.company_id = @user_message.company_id
       end
 
-      if artifact.respond_to?(:created_by=) && artifact.created_by.blank? && @user_message.respond_to?(:created_by)
-        artifact.created_by = @user_message.created_by
+      if Artifact.column_names.include?("created_by_id") && artifact.created_by_id.blank?
+        artifact.created_by_id = @user_message.created_by_id
       end
 
-      if artifact.respond_to?(:user=) && artifact.user.blank? && @user_message.respond_to?(:created_by)
-        artifact.user = @user_message.created_by
+      final_text = generated_text.to_s
+
+      artifact.with_lock do
+        artifact.assign_attributes(artifact_content_attributes(final_text))
+
+        has_dataset_cols = Artifact.column_names.include?("dataset_json") &&
+          Artifact.column_names.include?("dataset_locked_by_user")
+
+        if has_dataset_cols
+          unless artifact.dataset_locked_by_user?
+            artifact.dataset_json = dataset_json
+            artifact.sources_json = sources_json if Artifact.column_names.include?("sources_json")
+          end
+        elsif Artifact.column_names.include?("dataset_json")
+          artifact.dataset_json = dataset_json
+          artifact.sources_json = sources_json if Artifact.column_names.include?("sources_json")
+        end
+
+        # Ensure displayed/stored HTML reflects whatever dataset_json is currently authoritative.
+        if Artifact.column_names.include?("dataset_json") && artifact.dataset_json.present?
+          injected = Ai::ArtifactDatasetInjector.new(
+            html: final_text,
+            dataset_json: artifact.dataset_json
+          ).call
+
+          final_text = injected.to_s
+          artifact.assign_attributes(artifact_content_attributes(final_text))
+        end
+
+        artifact.save!
       end
 
-      artifact.assign_attributes(artifact_content_attributes(text))
-      artifact.save!
+      final_text
     rescue => e
-      Rails.logger.warn("[Ai::RunUserMessage] Artifact persist failed: #{e.class}: #{e.message}")
+      # Make failures debuggable (validation + NOT NULL issues were being swallowed).
+      if defined?(artifact) && artifact.respond_to?(:errors) && artifact.errors.any?
+        Rails.logger.warn(
+          "[Ai::RunUserMessage] Artifact persist failed: #{e.class}: #{e.message} — #{artifact.errors.full_messages.join(", ")}"
+        )
+      else
+        Rails.logger.warn("[Ai::RunUserMessage] Artifact persist failed: #{e.class}: #{e.message}")
+      end
+
+      generated_text.to_s
     end
 
     def artifact_content_attributes(text)

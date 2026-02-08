@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_07_203135) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_07_221203) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -72,10 +72,14 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_07_203135) do
     t.jsonb "metadata", default: {}, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.jsonb "dataset_json"
+    t.jsonb "sources_json"
+    t.boolean "dataset_locked_by_user", default: false, null: false
     t.index ["chat_id", "created_at"], name: "index_artifacts_on_chat_id_and_created_at"
     t.index ["chat_id"], name: "index_artifacts_on_chat_id"
     t.index ["company_id"], name: "index_artifacts_on_company_id"
     t.index ["created_by_id"], name: "index_artifacts_on_created_by_id"
+    t.index ["dataset_locked_by_user"], name: "index_artifacts_on_dataset_locked_by_user"
   end
 
   create_table "attachments", force: :cascade do |t|

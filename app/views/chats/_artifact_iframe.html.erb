@@ -1,0 +1,16 @@
+<%# app/views/chats/_artifact_iframe.html.erb %>
+<%
+  # Locals:
+  # - text: HTML string for srcdoc
+  # - artifact: optional (not required for rendering)
+  src = text.to_s
+%>
+
+<%= turbo_frame_tag "artifact_iframe" do %>
+  <iframe
+    class="artifact-frame"
+    sandbox="allow-popups allow-popups-to-escape-sandbox"
+    referrerpolicy="no-referrer"
+    srcdoc="<%= src %>">
+  </iframe>
+<% end %>

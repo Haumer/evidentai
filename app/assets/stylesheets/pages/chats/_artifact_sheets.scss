@@ -1,0 +1,185 @@
+/* app/assets/stylesheets/pages/chats/_artifact_sheets.scss */
+/* Bottom "Sheets" tabs + expandable drawer (Google Sheets / Excel vibe) */
+
+.artifact-inner.has-sheets {
+  padding-bottom: 82px; /* room for bottom bar */
+}
+
+.artifact-sheets {
+  position: sticky;
+  bottom: 0;
+  z-index: 6;
+  background: transparent;
+}
+
+.artifact-sheets__bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 12px;
+  margin: 0 22px 16px;
+  border-radius: 16px;
+
+  background: rgba(255, 255, 255, 0.80);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+}
+
+.artifact-sheets__toggle {
+  flex: none;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(0,0,0,0.02);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.artifact-sheets__toggle:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+.artifact-sheets__tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: auto;
+  scrollbar-width: none;
+  flex: 1;
+}
+
+.artifact-sheets__tabs::-webkit-scrollbar { display: none; }
+
+.artifact-sheets__tab {
+  flex: none;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+
+  font-size: 12px;
+  font-weight: 650;
+  color: rgba(0,0,0,0.72);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.artifact-sheets__tab:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+.artifact-sheets__tab.is-active {
+  background: rgba(10,132,255,0.10);
+  border-color: rgba(10,132,255,0.22);
+  color: rgba(0,0,0,0.86);
+}
+
+.artifact-sheets__drawer {
+  margin: 0 22px 22px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.10);
+  overflow: hidden;
+}
+
+.artifact-sheets__drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+.artifact-sheets__drawer-title {
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: -0.1px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.artifact-sheets__close {
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(0,0,0,0.02);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.artifact-sheets__close:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+.artifact-sheets__sheet {
+  padding: 12px 14px 14px;
+  max-height: 44vh;
+  overflow: auto;
+}
+
+.artifact-sheets__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.artifact-sheets__meta-pill {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.04);
+  border: 1px solid rgba(0,0,0,0.06);
+  color: rgba(0,0,0,0.65);
+}
+
+.artifact-sheets__meta-hint {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.artifact-sheets__table-wrap {
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: rgba(255,255,255,0.70);
+  overflow: hidden;
+}
+
+.artifact-sheets__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.artifact-sheets__table th,
+.artifact-sheets__table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  vertical-align: top;
+}
+
+.artifact-sheets__table th {
+  position: sticky;
+  top: 0;
+  background: rgba(255,255,255,0.90);
+  backdrop-filter: blur(10px);
+  font-weight: 750;
+}
+
+.artifact-sheets__table tr:last-child td {
+  border-bottom: 0;
+}

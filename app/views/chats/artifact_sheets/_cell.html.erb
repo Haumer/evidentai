@@ -1,0 +1,67 @@
+<%# app/views/chats/artifact_sheets/_cell.html.erb %>
+<%# Locals expected:
+    - artifact: Artifact
+    - dataset_index: Integer
+    - row_index: Integer
+    - col_index: Integer
+    - value: any
+    - editing: Boolean
+    - error: String|nil
+%>
+
+<%
+  dataset_index = dataset_index.to_i
+  row_index = row_index.to_i
+  col_index = col_index.to_i
+
+  frame_id = "dataset_cell_#{dataset_index}_#{row_index}_#{col_index}"
+
+  formatted_value =
+    if value.nil? || value.to_s.strip == ""
+      nil
+    elsif value.is_a?(Float) && value.to_i.to_f == value
+      value.to_i
+    else
+      value
+    end
+
+  display_value =
+    if formatted_value.nil? || formatted_value.to_s.strip == ""
+      "—"
+    else
+      formatted_value.is_a?(Numeric) ? formatted_value : h(formatted_value.to_s)
+    end
+%>
+
+<%= turbo_frame_tag frame_id do %>
+  <% if editing %>
+    <%= form_with(
+          url: artifact_dataset_cell_update_path(artifact, dataset_index, row_index, col_index),
+          method: :patch,
+          data: { turbo_frame: frame_id },
+          scope: :cell,
+          class: "sheet-cell-form"
+        ) do |f| %>
+
+      <%= f.text_field :value, value: (value.nil? ? "" : value.to_s), class: "sheet-cell-input", autofocus: true %>
+
+      <% if error.present? %>
+        <div class="sheet-cell-error"><%= error %></div>
+      <% end %>
+
+      <div class="sheet-cell-actions">
+        <%= f.submit "Save", class: "btn btn-small" %>
+
+        <%= link_to "Cancel",
+                    artifact_dataset_cell_show_path(artifact, dataset_index, row_index, col_index),
+                    data: { turbo_frame: frame_id },
+                    class: "btn btn-small btn-secondary" %>
+      </div>
+    <% end %>
+  <% else %>
+    <%= link_to display_value,
+                artifact_dataset_cell_edit_path(artifact, dataset_index, row_index, col_index),
+                data: { turbo_frame: frame_id },
+                class: "sheet-cell-display" %>
+  <% end %>
+<% end %>
