@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_07_221203) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_08_130328) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -50,6 +50,19 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_07_221203) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "ai_message_metas", force: :cascade do |t|
+    t.bigint "ai_message_id", null: false
+    t.string "suggested_title"
+    t.boolean "should_generate_artifact"
+    t.boolean "needs_sources"
+    t.boolean "suggest_web_search"
+    t.jsonb "payload_json", default: {}, null: false
+    t.jsonb "flags_json", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ai_message_id"], name: "index_ai_message_metas_on_ai_message_id", unique: true
   end
 
   create_table "ai_messages", force: :cascade do |t|
@@ -184,6 +197,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_07_221203) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "ai_message_metas", "ai_messages"
   add_foreign_key "ai_messages", "user_messages"
   add_foreign_key "artifacts", "chats"
   add_foreign_key "artifacts", "companies"

@@ -2,6 +2,8 @@
 class AiMessage < ApplicationRecord
   belongs_to :user_message
 
+  has_one :ai_message_meta, dependent: :destroy
+
   has_many :proposed_actions, dependent: :destroy
   has_many :attachments, as: :attachable, dependent: :destroy
 
