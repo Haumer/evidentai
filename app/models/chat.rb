@@ -2,6 +2,8 @@
 class Chat < ApplicationRecord
   UNTITLED_TITLES = ["untitled", "untitled chat"].freeze
 
+  before_validation :ensure_inbound_email_token
+
   belongs_to :company
   belongs_to :created_by, class_name: "User"
 
@@ -37,5 +39,21 @@ class Chat < ApplicationRecord
     return true unless has_attribute?(:context_suggestions_enabled)
 
     self[:context_suggestions_enabled] != false
+  end
+
+  private
+
+  def ensure_inbound_email_token
+    return unless has_attribute?(:inbound_email_token)
+    return if inbound_email_token.present?
+
+    self.inbound_email_token = build_unique_inbound_email_token
+  end
+
+  def build_unique_inbound_email_token
+    loop do
+      token = SecureRandom.urlsafe_base64(18)
+      return token unless self.class.where(inbound_email_token: token).exists?
+    end
   end
 end
