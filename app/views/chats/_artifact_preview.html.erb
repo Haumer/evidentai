@@ -20,7 +20,7 @@
 
   # Dataset discovery (no iframe JS; server-side parse only)
   # Prefer persisted dataset_json if available; fallback to parsing the HTML.
-  extracted = has_text ? Ai::ArtifactDatasetExtractor.call(text) : { dataset_json: nil, sources_json: nil }
+  extracted = has_text ? Ai::Artifacts::Dataset::Extract.call(text) : { dataset_json: nil, sources_json: nil }
 
   dataset_payload =
     if artifact&.respond_to?(:dataset_json) && artifact.dataset_json.present?
@@ -38,7 +38,7 @@
 
   # IMPORTANT:
   # Keep dataset OUTSIDE the iframe.
-  iframe_text = has_text ? Ai::ArtifactDatasetStripper.call(text) : ""
+  iframe_text = has_text ? Ai::Artifacts::Dataset::Strip.call(text) : ""
 %>
 
 <header class="artifact-header">

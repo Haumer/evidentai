@@ -1,20 +1,21 @@
-# app/services/ai/action_catalog.rb
+# app/services/ai/actions/catalog.rb
 #
 # A single source of truth for what the AI is allowed to propose.
 # Keep this small + explicit. Add new action types deliberately.
 #
 # Usage:
-#   catalog = Ai::ActionCatalog.catalog
-#   Ai::ActionCatalog.allowed_type?("draft_email")
-#   Ai::ActionCatalog.validate!("draft_email", payload_hash)
-#   Ai::ActionCatalog.as_system_prompt_json
+#   catalog = Ai::Actions::Catalog.catalog
+#   Ai::Actions::Catalog.allowed_type?("draft_email")
+#   Ai::Actions::Catalog.validate!("draft_email", payload_hash)
+#   Ai::Actions::Catalog.as_system_prompt_json
 #
 # Notes:
 # - This is not a full JSON schema validator on purpose (MVP).
 # - The server must still treat all actions as "proposals" requiring human approval.
 
 module Ai
-  class ActionCatalog
+  module Actions
+    class Catalog
     Action = Struct.new(
       :type,
       :title,
@@ -270,6 +271,7 @@ module Ai
     # (The older single-pass shape is intentionally removed to match the two-pass design.)
     def self.system_prompt_block
       extraction_system_prompt
+    end
     end
   end
 end

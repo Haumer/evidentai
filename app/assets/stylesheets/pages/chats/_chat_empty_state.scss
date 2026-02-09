@@ -1,0 +1,24 @@
+/* app/assets/stylesheets/pages/chats/_chat_empty_state.scss */
+/* Empty conversation placeholder */
+
+.chat.is-empty .chat-timeline {
+  display: flex;
+  align-items: center;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 24px 12px;
+}
+
+.empty-state h2 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 750;
+  letter-spacing: -0.2px;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 14px;
+}

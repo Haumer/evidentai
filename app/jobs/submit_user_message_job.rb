@@ -28,7 +28,7 @@ class SubmitUserMessageJob < ApplicationJob
     user_message.update!(settings: settings)
 
     # ---- Single entry point ----
-    Ai::RunUserMessage.new(user_message: user_message, context: context).call
+    Ai::ProcessUserMessage.new(user_message: user_message, context: context).call
   rescue => e
     begin
       UserMessage.where(id: user_message_id)
