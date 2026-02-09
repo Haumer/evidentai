@@ -1,19 +1,22 @@
 <%# app/views/user_messages/_assistant_stream.html.erb %>
 
+<% has_progress = accumulated.to_s.strip.present? %>
+
 <div id="assistant_user_message_<%= user_message.id %>">
-  <div class="message message-assistant is-streaming">
-    <div class="message-bubble">
-      <% if accumulated.to_s.strip.present? %>
-        <div class="message-text">
-          <%= render_markdown(accumulated.to_s) %>
-        </div>
-      <% else %>
-        <div class="assistant-ghost" aria-hidden="true">
-          <div class="ghost-line w-60"></div>
-          <div class="ghost-line w-90"></div>
-          <div class="ghost-line w-75"></div>
-        </div>
-      <% end %>
+  <div class="message message-assistant message-assistant--handoff is-streaming">
+    <div class="message-bubble" role="status" aria-live="polite">
+      <div class="message-label">Assistant</div>
+      <div class="message-text">
+        <p>Running your prompt.</p>
+        <p class="muted">
+          <%= has_progress ? "Generation is in progress. The full result will appear in the right Output pane." : "The right Output pane is waiting for this left-side prompt to execute." %>
+        </p>
+      </div>
+      <div class="assistant-waiting-indicator" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
     </div>
   </div>
 </div>

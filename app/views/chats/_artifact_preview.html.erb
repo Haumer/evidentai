@@ -64,7 +64,7 @@
   <div class="artifact-header-left">
     <h2 class="artifact-title">Output</h2>
     <div class="artifact-subtitle">
-      <%= has_text ? "Most recent version" : "Ready for your first request" %>
+      <%= has_text ? "Most recent version" : "Waiting on the left prompt to execute" %>
     </div>
   </div>
 
@@ -110,12 +110,21 @@
     <%= render partial: "chats/artifact_iframe", locals: { artifact: artifact, text: iframe_text } %>
   <% else %>
     <div class="artifact-empty-card">
-      <h3>Output Will Appear Here</h3>
-      <p class="muted">Ask for a draft, summary, or plan and it will render in this pane.</p>
+      <h3>Right pane is waiting</h3>
+      <p class="muted">Send a prompt in the left chat. After it runs, the generated output will appear here.</p>
 
-      <div class="artifact-empty-minimal" aria-hidden="true">
-        <div class="artifact-empty-minimal__mark">
-          <span></span>
+      <div class="artifact-empty-flow" role="note">
+        <div class="artifact-empty-flow__step">
+          <strong>1</strong>
+          <span>Write a prompt on the left.</span>
+        </div>
+        <div class="artifact-empty-flow__step">
+          <strong>2</strong>
+          <span>Wait for execution to finish.</span>
+        </div>
+        <div class="artifact-empty-flow__step">
+          <strong>3</strong>
+          <span>Review and refine the output on the right.</span>
         </div>
       </div>
     </div>
