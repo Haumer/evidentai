@@ -7,10 +7,8 @@
     <div class="message-bubble" role="status" aria-live="polite">
       <div class="message-label">Assistant</div>
       <div class="message-text">
-        <p>Running your prompt.</p>
-        <p class="muted">
-          <%= has_progress ? "Generation is in progress. The full result will appear in the right Output pane." : "The right Output pane is waiting for this left-side prompt to execute." %>
-        </p>
+        <p>Updating.</p>
+        <p class="muted"><%= has_progress ? "Generating output..." : "Waiting for execution..." %></p>
       </div>
       <div class="assistant-waiting-indicator" aria-hidden="true">
         <span></span>
