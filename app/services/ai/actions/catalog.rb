@@ -240,9 +240,18 @@ module Ai
 
     # This is meant to be embedded in your system prompt.
     # Keep it short and machine-friendly.
-    def self.as_system_prompt_json
+    def self.as_system_prompt_json(allowed_types: nil)
+      allowed = Array(allowed_types).map(&:to_s).presence
+
+      catalog_items =
+        if allowed
+          CATALOG.select { |a| allowed.include?(a.type.to_s) }
+        else
+          CATALOG
+        end
+
       {
-        allowed_action_types: CATALOG.map do |a|
+        allowed_action_types: catalog_items.map do |a|
           {
             type: a.type,
             title: a.title,
@@ -270,7 +279,7 @@ module Ai
     #
 
     # Pass 2: Strict JSON extraction prompt (actions only)
-    def self.extraction_system_prompt
+    def self.extraction_system_prompt(allowed_types: nil)
       <<~PROMPT
         You are extracting PROPOSED ACTIONS for a human-in-the-loop system.
 
@@ -306,7 +315,7 @@ module Ai
         - If no actions apply, output [].
 
         Catalog (JSON):
-        #{JSON.generate(as_system_prompt_json)}
+        #{JSON.generate(as_system_prompt_json(allowed_types: allowed_types))}
       PROMPT
     end
 

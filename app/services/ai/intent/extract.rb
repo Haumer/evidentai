@@ -65,7 +65,24 @@ module Ai
         ).call
 
         result = @client.generate(prompt_snapshot: messages, model: @model)
+        track_usage!(result)
         result.fetch(:text).to_s
+      end
+
+      def track_usage!(result)
+        Ai::Usage::TrackRequest.call(
+          request_kind: "intent_extract",
+          provider: result[:provider].to_s.presence || DEFAULT_PROVIDER,
+          model: result[:model].to_s.presence || @model,
+          provider_request_id: result[:provider_request_id],
+          usage: result[:usage],
+          raw: result[:raw],
+          user_message: @user_message,
+          ai_message: @ai_message,
+          chat: @user_message.chat
+        )
+      rescue
+        nil
       end
 
       def parse_json_object(text)

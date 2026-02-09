@@ -42,6 +42,7 @@ module Ai
           model: @context.model,
           assumed_defaults: assumed_defaults
         )
+        track_usage!(ai_message: ai_message)
         broadcaster.final
 
         @context.ai_message = ai_message
@@ -81,6 +82,22 @@ module Ai
           instruction: @user_message.instruction.to_s,
           chat_history_text: @context.full_chat_history_text
         )
+      end
+
+      def track_usage!(ai_message:)
+        Ai::Usage::TrackRequest.call(
+          request_kind: "chat_reply_stream",
+          provider: @context.provider,
+          model: streamer.response_model,
+          provider_request_id: streamer.provider_request_id,
+          usage: streamer.response_usage,
+          user_message: @user_message,
+          ai_message: ai_message,
+          chat: @context.chat,
+          metadata: { stream: true }
+        )
+      rescue
+        nil
       end
     end
   end

@@ -59,6 +59,7 @@ module Ai
           model: @context.model
         )
 
+        track_usage!(result)
         result.fetch(:text).to_s
       end
 
@@ -126,6 +127,22 @@ module Ai
           chat: @chat,
           user_message: @user_message
         )
+      end
+
+      def track_usage!(result)
+        Ai::Usage::TrackRequest.call(
+          request_kind: "artifact_generate",
+          provider: result[:provider].to_s.presence || @context.provider,
+          model: result[:model].to_s.presence || @context.model,
+          provider_request_id: result[:provider_request_id],
+          usage: result[:usage],
+          raw: result[:raw],
+          user_message: @user_message,
+          ai_message: @context.ai_message,
+          chat: @chat
+        )
+      rescue
+        nil
       end
     end
   end

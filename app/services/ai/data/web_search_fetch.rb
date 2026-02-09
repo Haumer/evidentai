@@ -23,12 +23,13 @@ module Ai
       #   raw_payload: Hash|nil,
       #   raw_text: String
       # }
-      def call(query_text:, context_text: nil, preferred_sources: nil)
+      def call(query_text:, context_text: nil, preferred_sources: nil, user_message: nil, ai_message: nil, chat: nil)
         response = run_response_with_tool_fallback(
           query_text: query_text.to_s,
           context_text: context_text.to_s,
           preferred_sources: preferred_sources
         )
+        track_usage!(response, user_message: user_message, ai_message: ai_message, chat: chat)
 
         raw_text = extract_output_text(response)
         parsed = parse_json_object(raw_text)
@@ -200,6 +201,20 @@ module Ai
           }.compact,
           sources_json: sources
         }
+      end
+
+      def track_usage!(response, user_message:, ai_message:, chat:)
+        Ai::Usage::TrackRequest.call(
+          request_kind: "web_search_fetch",
+          provider: "openai",
+          model: @model,
+          raw: response,
+          user_message: user_message,
+          ai_message: ai_message,
+          chat: chat
+        )
+      rescue
+        nil
       end
     end
   end

@@ -47,6 +47,10 @@ Rails.application.routes.draw do
   resources :memberships
   resources :companies
 
+  namespace :admin do
+    get :ai_usage, to: "ai_usage#index"
+  end
+
   # ---- System ----
   get "/setup", to: "pages#setup", as: :setup
   get "up" => "rails/health#show", as: :rails_health_check

@@ -4,7 +4,7 @@ class ExtractActionsJob < ApplicationJob
   def perform(user_message_id)
     user_message = UserMessage.find_by(id: user_message_id)
     return unless user_message
-    return unless suggestions_enabled?(user_message)
+    include_context_suggestions = suggestions_enabled?(user_message)
 
     settings = user_message.settings.is_a?(Hash) ? user_message.settings : {}
     turns = (settings["context_turns"] || Ai::Context::BuildContext::DEFAULT_TURNS).to_i
@@ -24,7 +24,10 @@ class ExtractActionsJob < ApplicationJob
       provider: Ai::ProcessUserMessage::DEFAULT_PROVIDER
     )
 
-    Ai::ProcessUserMessage::ActionsStep.new(context: run_context).call
+    Ai::ProcessUserMessage::ActionsStep.new(
+      context: run_context,
+      include_context_suggestions: include_context_suggestions
+    ).call
   rescue => e
     Rails.logger.warn("[ExtractActionsJob] #{e.class}: #{e.message}")
   end

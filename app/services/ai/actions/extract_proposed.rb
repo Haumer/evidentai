@@ -19,9 +19,10 @@ module Ai
     class ExtractProposed
       DEFAULT_MODEL = ENV.fetch("OPENAI_ACTIONS_MODEL", ENV.fetch("OPENAI_MODEL", "gpt-5.2")).freeze
 
-      def initialize(user_message:, context: nil)
+      def initialize(user_message:, context: nil, include_context_suggestions: true)
         @user_message = user_message
         @context = context.to_s.strip
+        @include_context_suggestions = (include_context_suggestions != false)
       end
 
       def call!
@@ -59,9 +60,11 @@ module Ai
       end
 
       def request_actions_json(instruction:, assistant_text:, context:)
+        allowed_types = allowed_types_for_request
+
         system =
           if Ai::Actions::Catalog.respond_to?(:extraction_system_prompt)
-            Ai::Actions::Catalog.extraction_system_prompt
+            Ai::Actions::Catalog.extraction_system_prompt(allowed_types: allowed_types)
           else
             <<~SYSTEM
               You are extracting PROPOSED ACTIONS for a human-in-the-loop system.
@@ -74,13 +77,6 @@ module Ai
               - "type" MUST be one of the allowed action types from the catalog.
               - If no actions apply, output [].
             SYSTEM
-          end
-
-        allowed_types =
-          if Ai::Actions::Catalog.respond_to?(:allowed_types)
-            Ai::Actions::Catalog.allowed_types
-          else
-            Ai::Actions::Catalog.types
           end
 
         user = {
@@ -97,6 +93,7 @@ module Ai
             { role: "user", content: user.to_json }
           ]
         )
+        track_usage!(resp)
 
         if resp.respond_to?(:output_text)
           resp.output_text.to_s
@@ -123,7 +120,7 @@ module Ai
 
           actions.each do |a|
             type = a.fetch("type")
-            next if type == "suggest_additional_context" && !context_suggestions_enabled?
+            next if type == "suggest_additional_context" && !include_context_suggestions?
 
             payload = a.fetch("payload", {})
             metadata = a.fetch("metadata", {})
@@ -213,6 +210,39 @@ module Ai
         chat_enabled && account_enabled
       rescue
         true
+      end
+
+      def include_context_suggestions?
+        @include_context_suggestions && context_suggestions_enabled?
+      end
+
+      def allowed_types_for_request
+        types =
+          if Ai::Actions::Catalog.respond_to?(:allowed_types)
+            Ai::Actions::Catalog.allowed_types
+          else
+            Ai::Actions::Catalog.types
+          end
+
+        if include_context_suggestions?
+          types
+        else
+          types.reject { |t| t.to_s == "suggest_additional_context" }
+        end
+      end
+
+      def track_usage!(response)
+        Ai::Usage::TrackRequest.call(
+          request_kind: "actions_extract",
+          provider: "openai",
+          model: DEFAULT_MODEL,
+          raw: response,
+          user_message: @user_message,
+          ai_message: @user_message.ai_message,
+          chat: @user_message.chat
+        )
+      rescue
+        nil
       end
     end
   end

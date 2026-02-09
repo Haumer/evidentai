@@ -5,6 +5,7 @@ class UserMessage < ApplicationRecord
   belongs_to :chat, inverse_of: :user_messages
 
   has_many :attachments, as: :attachable, dependent: :destroy
+  has_many :ai_request_usages, dependent: :nullify
   has_one :ai_message, dependent: :destroy, inverse_of: :user_message
 
   validates :instruction, presence: true

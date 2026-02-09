@@ -4,6 +4,7 @@ class AiMessage < ApplicationRecord
 
   has_one :ai_message_meta, dependent: :destroy
 
+  has_many :ai_request_usages, dependent: :nullify
   has_many :proposed_actions, dependent: :destroy
   has_many :attachments, as: :attachable, dependent: :destroy
 

@@ -34,7 +34,14 @@ module Ai
         )
 
         text = chat.choices.first.message.content
-        { content: { text: text }, raw: chat }
+        {
+          content: { text: text },
+          raw: chat,
+          provider: "openai",
+          model: response_model(chat, fallback: model),
+          provider_request_id: response_id(chat),
+          usage: extract_usage(chat)
+        }
       end
 
       private
@@ -47,6 +54,56 @@ module Ai
           content = m[:content] || m["content"]
           { role: role, content: content.to_s }
         end
+      end
+
+      def response_model(chat, fallback:)
+        if chat.respond_to?(:model)
+          chat.model.to_s.presence || fallback.to_s
+        elsif chat.is_a?(Hash)
+          chat["model"].to_s.presence || fallback.to_s
+        else
+          fallback.to_s
+        end
+      end
+
+      def response_id(chat)
+        if chat.respond_to?(:id)
+          chat.id.to_s.presence
+        elsif chat.is_a?(Hash)
+          chat["id"].to_s.presence
+        end
+      end
+
+      def extract_usage(chat)
+        usage =
+          if chat.respond_to?(:usage)
+            chat.usage
+          elsif chat.is_a?(Hash)
+            chat["usage"]
+          end
+
+        {
+          input_tokens: usage_value(usage, :prompt_tokens, "prompt_tokens", :input_tokens, "input_tokens"),
+          output_tokens: usage_value(usage, :completion_tokens, "completion_tokens", :output_tokens, "output_tokens"),
+          total_tokens: usage_value(usage, :total_tokens, "total_tokens")
+        }.compact
+      end
+
+      def usage_value(usage, *keys)
+        return nil if usage.nil?
+
+        keys.each do |key|
+          value =
+            if usage.respond_to?(key)
+              usage.public_send(key)
+            elsif usage.is_a?(Hash)
+              usage[key] || usage[key.to_s]
+            end
+
+          return value.to_i if value.present?
+        end
+
+        nil
       end
     end
   end

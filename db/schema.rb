@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_09_170001) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_09_173500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -73,6 +73,37 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_09_170001) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_message_id"], name: "index_ai_messages_on_user_message_id"
+  end
+
+  create_table "ai_request_usages", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.bigint "chat_id", null: false
+    t.bigint "user_message_id"
+    t.bigint "ai_message_id"
+    t.string "request_kind", null: false
+    t.string "provider", null: false
+    t.string "model"
+    t.string "provider_request_id"
+    t.integer "input_tokens", default: 0, null: false
+    t.integer "output_tokens", default: 0, null: false
+    t.integer "total_tokens", default: 0, null: false
+    t.decimal "input_rate_per_1m_usd", precision: 12, scale: 6
+    t.decimal "output_rate_per_1m_usd", precision: 12, scale: 6
+    t.decimal "input_cost_usd", precision: 12, scale: 6, default: "0.0", null: false
+    t.decimal "output_cost_usd", precision: 12, scale: 6, default: "0.0", null: false
+    t.decimal "total_cost_usd", precision: 12, scale: 6, default: "0.0", null: false
+    t.datetime "requested_at", null: false
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ai_message_id"], name: "index_ai_request_usages_on_ai_message_id"
+    t.index ["chat_id", "requested_at"], name: "index_ai_request_usages_on_chat_id_and_requested_at"
+    t.index ["chat_id"], name: "index_ai_request_usages_on_chat_id"
+    t.index ["company_id"], name: "index_ai_request_usages_on_company_id"
+    t.index ["request_kind"], name: "index_ai_request_usages_on_request_kind"
+    t.index ["requested_at"], name: "index_ai_request_usages_on_requested_at"
+    t.index ["user_message_id", "requested_at"], name: "index_ai_request_usages_on_user_message_id_and_requested_at"
+    t.index ["user_message_id"], name: "index_ai_request_usages_on_user_message_id"
   end
 
   create_table "artifacts", force: :cascade do |t|
@@ -221,6 +252,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_09_170001) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "ai_message_metas", "ai_messages"
   add_foreign_key "ai_messages", "user_messages"
+  add_foreign_key "ai_request_usages", "ai_messages"
+  add_foreign_key "ai_request_usages", "chats"
+  add_foreign_key "ai_request_usages", "companies"
+  add_foreign_key "ai_request_usages", "user_messages"
   add_foreign_key "artifacts", "chats"
   add_foreign_key "artifacts", "companies"
   add_foreign_key "artifacts", "users", column: "created_by_id"

@@ -29,7 +29,7 @@ module Ai
       # Providers may return a plain string
       return { text: result.to_s, raw: nil } if result.is_a?(String)
 
-      # Providers may return { content: { text: ... }, raw: ... } (your current OpenAI shape)
+      # Providers may return { content: { text: ... }, raw: ..., usage: ..., provider: ..., model: ... }
       if result.is_a?(Hash)
         text =
           result.dig(:text) ||
@@ -39,7 +39,14 @@ module Ai
           result.dig(:content, "text") ||
           result.dig("content", :text)
 
-        return { text: text.to_s, raw: result[:raw] || result["raw"] }
+        return {
+          text: text.to_s,
+          raw: result[:raw] || result["raw"],
+          usage: result[:usage] || result["usage"],
+          provider: result[:provider] || result["provider"],
+          model: result[:model] || result["model"],
+          provider_request_id: result[:provider_request_id] || result["provider_request_id"]
+        }
       end
 
       # Fallback

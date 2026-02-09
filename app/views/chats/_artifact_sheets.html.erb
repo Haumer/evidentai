@@ -20,6 +20,15 @@
   end
 
   editable = artifact.present?
+
+  dataset_full_name = lambda do |ds, idx|
+    ds.is_a?(Hash) ? (ds["name"].presence || "Sheet #{idx + 1}") : "Sheet #{idx + 1}"
+  end
+
+  dataset_short_name = lambda do |ds, idx|
+    full = dataset_full_name.call(ds, idx)
+    Ai::Artifacts::Dataset::ShortLabel.call(full, fallback: "Sheet #{idx + 1}")
+  end
 %>
 
 <div class="artifact-sheets" data-controller="artifact-sheets">
@@ -35,7 +44,8 @@
 
     <div class="artifact-sheets__tabs" data-artifact-sheets-target="tabs">
       <% datasets.each_with_index do |ds, idx| %>
-        <% label = ds.is_a?(Hash) ? (ds["name"].presence || "Sheet #{idx + 1}") : "Sheet #{idx + 1}" %>
+        <% full_label = dataset_full_name.call(ds, idx) %>
+        <% short_label = dataset_short_name.call(ds, idx) %>
         <button
           type="button"
           class="artifact-sheets__tab <%= "is-active" if idx == 0 %>"
@@ -43,8 +53,9 @@
           aria-selected="<%= idx == 0 %>"
           data-action="artifact-sheets#select"
           data-index="<%= idx %>"
-          data-artifact-sheets-target="tab">
-          <%= label %>
+          data-artifact-sheets-target="tab"
+          title="<%= full_label %>">
+          <%= short_label %>
         </button>
       <% end %>
     </div>
@@ -53,7 +64,7 @@
   <div class="artifact-sheets__drawer" data-artifact-sheets-target="drawer" hidden>
     <div class="artifact-sheets__drawer-header">
       <div class="artifact-sheets__drawer-title" data-artifact-sheets-target="drawerTitle">
-        <%= (datasets.first.is_a?(Hash) ? datasets.first["name"] : nil).presence || "Data" %>
+        <%= datasets.first.present? ? dataset_short_name.call(datasets.first, 0) : "Data" %>
       </div>
 
       <button type="button" class="artifact-sheets__close" data-action="artifact-sheets#close">

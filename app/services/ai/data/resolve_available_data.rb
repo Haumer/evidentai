@@ -48,7 +48,10 @@ module Ai
         fetched = fetcher.call(
           query_text: @user_message.instruction.to_s,
           context_text: @context.context_text.to_s,
-          preferred_sources: cache&.sources_json
+          preferred_sources: cache&.sources_json,
+          user_message: @user_message,
+          ai_message: @context.ai_message,
+          chat: @chat
         )
 
         if fetched[:ok]

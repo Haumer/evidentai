@@ -1,13 +1,18 @@
 module Ai
   class ProcessUserMessage
     class ActionsStep
-      def initialize(context:)
+      def initialize(context:, include_context_suggestions: true)
         @context = context
+        @include_context_suggestions = include_context_suggestions
       end
 
       def call
         Ai::Actions::ExtractProposed
-          .new(user_message: @context.user_message, context: @context.context_text)
+          .new(
+            user_message: @context.user_message,
+            context: @context.context_text,
+            include_context_suggestions: @include_context_suggestions
+          )
           .call!
 
         broadcaster.replace
