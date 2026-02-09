@@ -21,11 +21,10 @@ module Artifacts
         value: params.require(:cell).fetch(:value, "")
       )
 
-      # 1) Ensure dataset JSON is embedded (persistence / portability).
-      html = Ai::Artifacts::Dataset::Inject.new(html: @artifact.content, dataset_json: @artifact.dataset_json).call
-
-      # 2) Ensure a visible HTML representation exists so the iframe visibly changes after edits.
-      html = Ai::Artifacts::Dataset::InjectTables.call(html: html, dataset_json: @artifact.dataset_json)
+      html = Ai::Artifacts::Dataset::ApplyToHtml.call(
+        html: @artifact.content,
+        dataset_json: @artifact.dataset_json
+      )
 
       @artifact.update!(content: html)
 
@@ -68,6 +67,7 @@ module Artifacts
       dataset = @artifact.dataset_at(@dataset_index) || {}
       rows = dataset["rows"] || []
       value = rows.dig(@row_index, @col_index)
+      computed = @artifact.computed_cell?(dataset_index: @dataset_index, col_index: @col_index)
 
       {
         artifact: @artifact,
@@ -75,6 +75,7 @@ module Artifacts
         row_index: @row_index,
         col_index: @col_index,
         value: value,
+        computed: computed,
         editing: editing,
         error: error
       }

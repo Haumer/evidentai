@@ -183,3 +183,69 @@
 .artifact-sheets__table tr:last-child td {
   border-bottom: 0;
 }
+
+.sheet-cell-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  color: rgba(0, 0, 0, 0.82);
+  text-decoration: none;
+  padding: 2px 4px;
+  border-radius: 6px;
+}
+
+.sheet-cell-display:hover {
+  background: rgba(10, 132, 255, 0.08);
+  color: rgba(0, 0, 0, 0.92);
+}
+
+.sheet-cell-display.is-readonly {
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.72);
+  cursor: not-allowed;
+}
+
+.sheet-cell-badge {
+  flex: none;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 2px 5px;
+  border-radius: 999px;
+  border: 1px solid rgba(10, 132, 255, 0.22);
+  background: rgba(10, 132, 255, 0.1);
+  color: rgba(9, 84, 154, 1);
+}
+
+.sheet-cell-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sheet-cell-input {
+  width: 100%;
+  min-width: 84px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  padding: 5px 7px;
+  font-size: 12px;
+  background: #fff;
+}
+
+.sheet-cell-input:focus {
+  outline: none;
+  border-color: rgba(10, 132, 255, 0.45);
+  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.12);
+}
+
+.sheet-cell-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.sheet-cell-error {
+  font-size: 11px;
+  color: #b42318;
+}

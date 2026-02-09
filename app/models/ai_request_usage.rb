@@ -35,7 +35,7 @@ class AiRequestUsage < ApplicationRecord
       target: "admin_ai_usage_live_feed_empty"
     )
 
-    Turbo::StreamsChannel.broadcast_append_to(
+    Turbo::StreamsChannel.broadcast_prepend_to(
       [company, :ai_usage],
       target: "admin_ai_usage_live_feed_items",
       partial: "admin/ai_usage/live_request",

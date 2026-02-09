@@ -1,12 +1,20 @@
 <%# app/views/user_messages/_assistant.html.erb %>
 
 <% text = user_message.ai_message&.content&.dig("text").to_s %>
+<% word_count = text.scan(/\S+/).size %>
 
 <div id="assistant_user_message_<%= user_message.id %>">
-  <div class="message message-assistant">
+  <div class="message message-assistant message-assistant--handoff">
     <div class="message-bubble">
+      <div class="message-label">Assistant</div>
       <div class="message-text">
-        <%= render_markdown(text) %>
+        <p>Output updated.</p>
+        <p class="muted">
+          Review and refine as needed.
+          <% if word_count.positive? %>
+            Generated length: <%= number_with_delimiter(word_count) %> words.
+          <% end %>
+        </p>
       </div>
     </div>
   </div>
