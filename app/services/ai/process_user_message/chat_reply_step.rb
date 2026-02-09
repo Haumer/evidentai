@@ -51,7 +51,7 @@ module Ai
       rescue => e
         fail_usage_tracking(usage_row, e)
         persist.mark_failed!(e) rescue nil
-        broadcaster.stream(accumulated: "⚠️ #{e.message}") rescue nil
+        broadcaster.final rescue nil
         raise
       end
 

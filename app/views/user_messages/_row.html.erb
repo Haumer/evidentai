@@ -30,6 +30,9 @@
   <% elsif user_message.status == "running" %>
     <%= render partial: "user_messages/assistant_stream",
                locals: { user_message: user_message, accumulated: "" } %>
+  <% elsif user_message.status == "failed" %>
+    <%= render partial: "user_messages/assistant_failed",
+               locals: { user_message: user_message } %>
   <% end %>
 </div>
 

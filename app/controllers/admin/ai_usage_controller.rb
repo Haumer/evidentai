@@ -17,6 +17,21 @@ module Admin
                       .to_a
     end
 
+    def retry_run
+      user_message = UserMessage.where(company_id: @company.id).find(params.require(:user_message_id))
+      Ai::Chat::RetryUserMessage.call(user_message: user_message)
+
+      redirect_to admin_ai_usage_path, notice: "Resent UserMessage ##{user_message.id}."
+    rescue ActiveRecord::RecordNotFound
+      redirect_to admin_ai_usage_path, alert: "Run not found."
+    rescue ActionController::ParameterMissing
+      redirect_to admin_ai_usage_path, alert: "Missing user message id."
+    rescue ArgumentError => e
+      redirect_to admin_ai_usage_path, alert: e.message
+    rescue => e
+      redirect_to admin_ai_usage_path, alert: "Failed to resend run: #{e.class}."
+    end
+
     private
 
     def ensure_membership!

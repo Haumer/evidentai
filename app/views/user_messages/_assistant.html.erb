@@ -2,6 +2,7 @@
 
 <% text = user_message.ai_message&.content&.dig("text").to_s %>
 <% confirmation = text.presence || "Understood." %>
+<% failed = user_message.status.to_s == "failed" %>
 
 <div id="assistant_user_message_<%= user_message.id %>">
   <div class="message message-assistant message-assistant--handoff">
@@ -9,7 +10,7 @@
       <div class="message-label">Assistant</div>
       <div class="message-text">
         <%= simple_format(h(confirmation)) %>
-        <p class="muted">Output updated.</p>
+        <p class="muted"><%= failed ? "Request failed." : "Output updated." %></p>
       </div>
     </div>
   </div>

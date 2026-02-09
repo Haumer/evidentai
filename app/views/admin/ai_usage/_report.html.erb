@@ -86,16 +86,19 @@
       <tr>
         <th>Run</th>
         <th>User ID</th>
+        <th>Status</th>
         <th>Requests</th>
         <th>Total Tokens</th>
         <th>Total Cost</th>
         <th>Output</th>
+        <th>Error</th>
+        <th>Action</th>
         <th>Last Request</th>
       </tr>
     </thead>
     <tbody>
       <% if run_rows.empty? %>
-        <tr><td colspan="7" class="muted">No run-through usage available yet.</td></tr>
+        <tr><td colspan="10" class="muted">No run-through usage available yet.</td></tr>
       <% else %>
         <% run_rows.each do |row| %>
           <% um = row[:user_message] %>
@@ -112,10 +115,29 @@
               <% end %>
             </td>
             <td><%= user_id || "—" %></td>
+            <td><%= row[:run_status].presence || "—" %></td>
             <td><%= number_with_delimiter(row[:requests_count]) %></td>
             <td><%= number_with_delimiter(row[:total_tokens]) %></td>
             <td><%= number_to_currency(row[:total_cost_usd], unit: "$") %></td>
             <td><%= row[:output_updated] ? "Updated" : "Not updated" %></td>
+            <td>
+              <% if row[:run_error_message].present? %>
+                <small><%= truncate(row[:run_error_message], length: 140) %></small>
+              <% else %>
+                —
+              <% end %>
+            </td>
+            <td>
+              <% if row[:can_retry] %>
+                <%= button_to "Resend",
+                              admin_ai_usage_retry_run_path(user_message_id: um.id),
+                              method: :post,
+                              class: "btn btn-small",
+                              form: { data: { turbo: false } } %>
+              <% else %>
+                —
+              <% end %>
+            </td>
             <td><%= row[:last_requested_at]&.strftime("%Y-%m-%d %H:%M:%S") || "—" %></td>
           </tr>
         <% end %>

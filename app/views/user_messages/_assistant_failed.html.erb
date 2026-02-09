@@ -1,0 +1,15 @@
+<%# app/views/user_messages/_assistant_failed.html.erb %>
+
+<% message = user_message.error_message.to_s.presence || "I couldn't complete that request. Please try again." %>
+
+<div id="assistant_user_message_<%= user_message.id %>">
+  <div class="message message-assistant message-assistant--handoff">
+    <div class="message-bubble">
+      <div class="message-label">Assistant</div>
+      <div class="message-text">
+        <p><%= h(message) %></p>
+        <p class="muted">Request failed.</p>
+      </div>
+    </div>
+  </div>
+</div>

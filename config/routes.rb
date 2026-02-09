@@ -60,6 +60,7 @@ Rails.application.routes.draw do
 
   namespace :admin do
     get :ai_usage, to: "ai_usage#index"
+    post "ai_usage/retry_run", to: "ai_usage#retry_run", as: :ai_usage_retry_run
   end
 
   # ---- System ----

@@ -58,6 +58,9 @@ module Ai
             chat: chat,
             user_message: user_message,
             ai_message: user_message&.ai_message,
+            run_status: user_message&.status.to_s,
+            run_error_message: user_message&.error_message.to_s.presence,
+            can_retry: retryable_run?(user_message),
             output_updated: user_message&.artifact_updated? == true,
             last_requested_at: row.try(:last_requested_at)
           )
@@ -119,6 +122,13 @@ module Ai
 
       def human_request_kind(kind)
         kind.to_s.tr("_", " ").squeeze(" ").strip.titleize.presence || "Unknown"
+      end
+
+      def retryable_run?(user_message)
+        return false unless user_message
+        return false if user_message.status.to_s == "running"
+
+        user_message.instruction.to_s.strip.present?
       end
     end
   end

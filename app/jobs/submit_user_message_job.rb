@@ -10,8 +10,13 @@ class SubmitUserMessageJob < ApplicationJob
     Ai::ProcessUserMessage.new(user_message: user_message).call
   rescue => e
     begin
-      UserMessage.where(id: user_message_id)
-                 .update_all(status: "failed", error_message: e.message)
+      user_message = UserMessage.find_by(id: user_message_id)
+      if user_message.present?
+        Ai::Chat::PersistReply.new(user_message: user_message).mark_failed!(e)
+      else
+        friendly = Ai::Chat::HumanizeError.call(e)
+        UserMessage.where(id: user_message_id).update_all(status: "failed", error_message: friendly)
+      end
     rescue
       # ignore
     end

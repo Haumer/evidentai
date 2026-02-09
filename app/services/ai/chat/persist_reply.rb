@@ -70,7 +70,18 @@ module Ai
       end
 
       def mark_failed!(error)
-        @user_message.update!(status: "failed", error_message: error.message)
+        friendly = Ai::Chat::HumanizeError.call(error)
+        @user_message.update!(status: "failed", error_message: friendly)
+
+        ai_message = ensure_ai_message!
+        content = ai_message.content
+        content = {} unless content.is_a?(Hash)
+        ai_message.update!(
+          content: content.merge("text" => friendly),
+          status: "failed"
+        )
+
+        friendly
       end
     end
   end
