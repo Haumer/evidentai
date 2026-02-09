@@ -8,6 +8,7 @@ class User < ApplicationRecord
 
   has_many :memberships, dependent: :destroy
   has_many :companies, through: :memberships
+  has_many :artifact_triggers, foreign_key: :created_by_id, dependent: :destroy
 
   def display_name
     email.to_s.split("@").first.to_s.strip.presence || email.to_s

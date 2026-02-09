@@ -26,6 +26,10 @@ Rails.application.routes.draw do
   # via nested routes (Turbo Frames) to support user-owned dataset corrections.
   resources :artifacts, only: [:index, :show] do
     scope module: :artifacts do
+      resources :triggers, only: [:create, :destroy] do
+        post :fire, on: :member
+      end
+
       resources :datasets, only: [] do
         # Show a cell in non-editing mode (used for Cancel)
         # /artifacts/:artifact_id/datasets/:dataset_id/cell/:row_index/:col_index
@@ -39,6 +43,12 @@ Rails.application.routes.draw do
         # /artifacts/:artifact_id/datasets/:dataset_id/cell/:row_index/:col_index
         patch "cell/:row_index/:col_index",         to: "cells#update", as: :cell_update
       end
+    end
+  end
+
+  namespace :api do
+    resources :artifact_triggers, only: [] do
+      post :fire, on: :member
     end
   end
 

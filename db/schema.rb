@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_09_201000) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_09_213000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -107,6 +107,32 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_09_201000) do
     t.index ["status"], name: "index_ai_request_usages_on_status"
     t.index ["user_message_id", "requested_at"], name: "index_ai_request_usages_on_user_message_id_and_requested_at"
     t.index ["user_message_id"], name: "index_ai_request_usages_on_user_message_id"
+  end
+
+  create_table "artifact_triggers", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.bigint "created_by_id", null: false
+    t.bigint "chat_id", null: false
+    t.bigint "artifact_id", null: false
+    t.string "name", null: false
+    t.string "trigger_type", default: "manual", null: false
+    t.string "status", default: "active", null: false
+    t.text "instruction_template"
+    t.integer "context_turns", default: 6, null: false
+    t.integer "context_max_chars", default: 6000, null: false
+    t.string "api_token"
+    t.datetime "last_fired_at"
+    t.integer "fired_count", default: 0, null: false
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["api_token"], name: "index_artifact_triggers_on_api_token", unique: true
+    t.index ["artifact_id"], name: "index_artifact_triggers_on_artifact_id"
+    t.index ["chat_id"], name: "index_artifact_triggers_on_chat_id"
+    t.index ["company_id"], name: "index_artifact_triggers_on_company_id"
+    t.index ["created_by_id"], name: "index_artifact_triggers_on_created_by_id"
+    t.index ["status"], name: "index_artifact_triggers_on_status"
+    t.index ["trigger_type"], name: "index_artifact_triggers_on_trigger_type"
   end
 
   create_table "artifacts", force: :cascade do |t|
@@ -260,6 +286,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_09_201000) do
   add_foreign_key "ai_request_usages", "ai_messages"
   add_foreign_key "ai_request_usages", "companies"
   add_foreign_key "ai_request_usages", "user_messages"
+  add_foreign_key "artifact_triggers", "artifacts"
+  add_foreign_key "artifact_triggers", "chats"
+  add_foreign_key "artifact_triggers", "companies"
+  add_foreign_key "artifact_triggers", "users", column: "created_by_id"
   add_foreign_key "artifacts", "chats"
   add_foreign_key "artifacts", "companies"
   add_foreign_key "artifacts", "users", column: "created_by_id"

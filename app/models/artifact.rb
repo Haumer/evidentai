@@ -4,6 +4,8 @@ class Artifact < ApplicationRecord
   belongs_to :created_by, class_name: "User"
   belongs_to :chat
 
+  has_many :artifact_triggers, dependent: :destroy
+
   validates :content, presence: true, allow_blank: true
 
   MAX_DATASET_BYTES = 200_000 # tune
