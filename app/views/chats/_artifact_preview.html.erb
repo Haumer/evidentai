@@ -5,7 +5,7 @@
   status = status.to_s
   is_working = (status == "working")
   has_text = text.to_s.strip.present?
-  status_label = is_working ? "updating" : (has_text ? "ready" : "waiting")
+  status_label = is_working ? "Updating" : (has_text ? "Output updated" : "Waiting")
 
   chat =
     local_assigns[:chat] ||

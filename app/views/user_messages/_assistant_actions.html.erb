@@ -3,72 +3,74 @@
 
 <%
   ai_message = user_message.ai_message
+  chat = user_message.chat
+
+  context_enabled =
+    if chat.respond_to?(:context_suggestions_enabled?)
+      chat.context_suggestions_enabled?
+    elsif chat.respond_to?(:context_suggestions_enabled)
+      chat.context_suggestions_enabled != false
+    else
+      true
+    end
+
+  latest = local_assigns.key?(:latest) ? !!local_assigns[:latest] : true
   actions = ai_message&.proposed_actions&.proposed&.order(created_at: :asc).to_a
   actions ||= []
+  actions = actions.select { |a| a.action_type == "suggest_additional_context" }
+
+  suggestions =
+    if context_enabled
+      actions.flat_map do |action|
+        payload = action.payload.is_a?(Hash) ? action.payload : {}
+        raw = Array(payload["suggestions"]) + Array(payload["questions"])
+        if raw.empty?
+          fallback =
+            payload["prompt_template"].to_s.presence ||
+            payload["title"].to_s.presence ||
+            payload["subject"].to_s.presence
+          raw << fallback if fallback.present?
+        end
+
+        raw
+      end
+    else
+      []
+    end
+
+  suggestions = suggestions.map { |s| s.to_s.squish }.reject(&:blank?).uniq.first(2)
+  should_render = latest && (suggestions.any? || !context_enabled)
 %>
 
-<% if actions.any? %>
+<% if should_render %>
   <div class="assistant-actions">
-    <div class="assistant-actions__header">
-      <div class="assistant-actions__title">Options</div>
-      <div class="assistant-actions__hint">Shown only when useful</div>
-    </div>
+    <% if suggestions.any? %>
+      <div class="assistant-actions__list">
+        <% suggestions.each do |suggestion| %>
+          <button
+            type="button"
+            class="assistant-suggestion"
+            data-controller="composer-suggestion"
+            data-action="click->composer-suggestion#insert"
+            data-composer-suggestion-text-value="<%= suggestion %>">
+            <span class="assistant-suggestion__label"><%= suggestion %></span>
+            <span class="assistant-suggestion__cta">Use</span>
+          </button>
+        <% end %>
+      </div>
+    <% elsif !context_enabled %>
+      <div class="assistant-actions__empty">Suggestions dismissed for this chat.</div>
+    <% end %>
 
-    <div class="assistant-actions__grid">
-      <% actions.each do |action| %>
-        <%
-          payload = action.payload.is_a?(Hash) ? action.payload : {}
-          catalog = Ai::Actions::Catalog.fetch(action.action_type)
-          type_label = catalog&.title.to_s.presence || action.action_type.to_s.humanize
-          type_hint = catalog&.description.to_s
-
-          title_text =
-            payload["title"].to_s.presence ||
-            payload["subject"].to_s.presence ||
-            payload["prompt_template"].to_s.presence ||
-            type_label
-
-          suggestions = Array(payload["suggestions"]).map { |s| s.to_s.strip }.reject(&:blank?)
-          questions = Array(payload["questions"]).map { |s| s.to_s.strip }.reject(&:blank?)
-        %>
-
-        <article class="action-card">
-          <div class="action-card__header">
-            <div class="action-card__title">
-              <span class="action-card__badge">Optional</span>
-              <span class="action-card__type"><%= type_label %></span>
-            </div>
-            <span class="action-card__meta"><%= action.status %></span>
-          </div>
-
-          <div class="action-card__body">
-            <div class="action-card__summary"><%= title_text %></div>
-
-            <% if type_hint.present? %>
-              <div class="assistant-actions__hint"><%= type_hint %></div>
-            <% end %>
-
-            <% if suggestions.any? %>
-              <ul class="action-card__list">
-                <% suggestions.each do |item| %>
-                  <li><%= item %></li>
-                <% end %>
-              </ul>
-            <% elsif questions.any? %>
-              <ul class="action-card__list">
-                <% questions.each do |item| %>
-                  <li><%= item %></li>
-                <% end %>
-              </ul>
-            <% else %>
-              <details class="action-card__details">
-                <summary class="action-card__details-summary">Details</summary>
-                <pre class="action-card__payload"><%= JSON.pretty_generate(payload) %></pre>
-              </details>
-            <% end %>
-          </div>
-        </article>
-      <% end %>
+    <div class="assistant-actions__footer">
+      <%= button_to(
+            (context_enabled ? "Dismiss suggestions" : "Show suggestions"),
+            toggle_context_suggestions_chat_path(chat),
+            method: :patch,
+            params: { enabled: (!context_enabled), user_message_id: user_message.id },
+            class: "btn btn-secondary btn-small",
+            form: { data: { turbo_stream: true } }
+          ) %>
     </div>
   </div>
 <% end %>

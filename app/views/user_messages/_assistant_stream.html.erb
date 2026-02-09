@@ -3,8 +3,6 @@
 <div id="assistant_user_message_<%= user_message.id %>">
   <div class="message message-assistant is-streaming">
     <div class="message-bubble">
-      <div class="message-label">Assistant</div>
-
       <% if accumulated.to_s.strip.present? %>
         <div class="message-text">
           <%= render_markdown(accumulated.to_s) %>
@@ -17,8 +15,5 @@
         </div>
       <% end %>
     </div>
-
-    <%# Keep the target present while streaming too %>
-    <%= render partial: "chats/run_status", locals: { user_message: user_message, state: "idle" } %>
   </div>
 </div>

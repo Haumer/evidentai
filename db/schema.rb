@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_08_130328) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_09_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -121,7 +121,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_08_130328) do
     t.datetime "updated_at", null: false
     t.boolean "title_set_by_user", default: false, null: false
     t.datetime "title_generated_at"
+    t.boolean "context_suggestions_enabled", default: true, null: false
     t.index ["company_id"], name: "index_chats_on_company_id"
+    t.index ["context_suggestions_enabled"], name: "index_chats_on_context_suggestions_enabled"
     t.index ["created_by_id"], name: "index_chats_on_created_by_id"
   end
 
@@ -178,6 +180,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_08_130328) do
     t.datetime "updated_at", null: false
     t.bigint "chat_id", null: false
     t.string "error_message"
+    t.datetime "artifact_updated_at"
+    t.index ["artifact_updated_at"], name: "index_user_messages_on_artifact_updated_at"
     t.index ["chat_id"], name: "index_user_messages_on_chat_id"
     t.index ["company_id"], name: "index_user_messages_on_company_id"
     t.index ["created_by_id"], name: "index_user_messages_on_created_by_id"

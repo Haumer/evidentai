@@ -31,6 +31,9 @@ module Ai
         - should_generate_artifact:
           true if the user asks for a finished outcome (document, plan, summary, checklist, email, report, structured output).
           false if they are just chatting or asking a quick question that doesn't need a finished artifact.
+          IMPORTANT: if the prior turn asked for missing information to complete an artifact request
+          and the current user message supplies that missing value (e.g. location, date range, audience),
+          set should_generate_artifact to true.
 
         - needs_sources:
           true if the user is asking for factual claims that require citations/sourcing OR explicitly requests sources.

@@ -51,9 +51,10 @@ module Ai
       def finalize!(ai_message:, text:, model:)
         content = ai_message.content
         content = {} unless content.is_a?(Hash)
+        clean_text = Ai::Chat::CleanReplyText.call(text.to_s)
 
         ai_message.update!(
-          content: content.merge("text" => text.to_s),
+          content: content.merge("text" => clean_text),
           status: "done"
         )
 

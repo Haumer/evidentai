@@ -2,7 +2,8 @@
 
 module MarkdownHelper
   def render_markdown(text)
-    md = normalize_utf8(strip_wrapping_fence(text.to_s))
+    cleaned = Ai::Chat::CleanReplyText.call(text.to_s)
+    md = normalize_utf8(strip_wrapping_fence(cleaned))
 
     if defined?(CommonMarker)
       html = CommonMarker.render_html(
@@ -31,6 +32,14 @@ module MarkdownHelper
 
     lines = s.split("\n")
     return s if lines.length < 3
+    return s unless lines.last.to_s.strip == "```"
+
+    opening = lines.first.to_s.strip
+    lang = opening.sub(/\A```/, "").strip.downcase
+    wrapper_langs = %w[ markdown md text plain plaintext ]
+
+    # Preserve real code fences like ```ruby / ```json.
+    return s if lang.present? && !wrapper_langs.include?(lang)
 
     # Remove first and last fence lines
     inner = lines[1..-2].join("\n")

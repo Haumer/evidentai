@@ -1,7 +1,9 @@
 # app/controllers/chats_controller.rb
 class ChatsController < ApplicationController
   before_action :ensure_membership!
-  before_action :set_chat, only: %i[show artifact_preview edit update destroy edit_title update_title sidebar_title]
+  before_action :set_chat, only: %i[
+    show artifact_preview edit update destroy edit_title update_title sidebar_title toggle_context_suggestions
+  ]
 
   def index
     @chats = Chat.where(company: @company).order(updated_at: :desc)
@@ -101,6 +103,40 @@ class ChatsController < ApplicationController
     end
   end
 
+  # PATCH /chats/:id/toggle_context_suggestions
+  def toggle_context_suggestions
+    enabled =
+      if params[:enabled].nil?
+        !@chat.context_suggestions_enabled?
+      else
+        ActiveModel::Type::Boolean.new.cast(params[:enabled])
+      end
+
+    @chat.update!(context_suggestions_enabled: enabled)
+
+    if !enabled
+      dismiss_pending_context_suggestions!
+    end
+
+    user_message = @chat.user_messages.find_by(id: params[:user_message_id])
+
+    respond_to do |format|
+      format.turbo_stream do
+        if user_message
+          render turbo_stream: turbo_stream.replace(
+            "assistant_actions_user_message_#{user_message.id}",
+            partial: "user_messages/assistant_actions",
+            locals: { user_message: user_message, latest: true }
+          )
+        else
+          head :ok
+        end
+      end
+
+      format.html { redirect_to chat_path(@chat) }
+    end
+  end
+
   # POST /chats
   def create
     # Sidebar “New” button hits this. No form.
@@ -169,5 +205,17 @@ class ChatsController < ApplicationController
     else
       ""
     end
+  end
+
+  def dismiss_pending_context_suggestions!
+    ProposedAction.joins(ai_message: :user_message)
+      .where(user_messages: { chat_id: @chat.id })
+      .where(action_type: "suggest_additional_context", status: "proposed")
+      .update_all(
+        status: "dismissed",
+        dismissed_at: Time.current,
+        dismissed_by_id: current_user.id,
+        updated_at: Time.current
+      )
   end
 end

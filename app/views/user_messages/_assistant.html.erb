@@ -5,14 +5,9 @@
 <div id="assistant_user_message_<%= user_message.id %>">
   <div class="message message-assistant">
     <div class="message-bubble">
-      <div class="message-label">Assistant</div>
-
       <div class="message-text">
         <%= render_markdown(text) %>
       </div>
     </div>
-
-    <%# Status indicator lives directly below the assistant message bubble %>
-    <%= render partial: "chats/run_status", locals: { user_message: user_message, state: "idle" } %>
   </div>
 </div>

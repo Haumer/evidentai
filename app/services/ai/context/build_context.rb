@@ -74,7 +74,7 @@ module Ai
         return "" unless ai_message
 
         content = ai_message.content.is_a?(Hash) ? ai_message.content : {}
-        content.fetch("text", "").to_s
+        Ai::Chat::CleanReplyText.call(content.fetch("text", "").to_s)
       end
 
       def compact(text)
