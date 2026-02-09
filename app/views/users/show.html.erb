@@ -31,9 +31,12 @@
       <h2>Settings</h2>
 
       <%= form_with model: @user, url: user_path(@user), method: :patch, class: "profile-form" do |f| %>
-        <label class="profile-toggle">
-          <%= f.check_box :context_suggestions_enabled %>
-          <span>
+        <label class="profile-toggle profile-toggle--slider">
+          <%= f.check_box :context_suggestions_enabled, class: "profile-toggle__input" %>
+          <span class="profile-toggle__slider" aria-hidden="true">
+            <span class="profile-toggle__thumb"></span>
+          </span>
+          <span class="profile-toggle__content">
             <strong>Context suggestions</strong>
             <small class="muted">Allow assistant suggestions that ask for extra context in chat.</small>
           </span>
