@@ -49,7 +49,7 @@
 
           <div class="sidebar-footer">
             <% if current_user %>
-              <%= link_to current_user.email, user_path(current_user), class: "sidebar-user-link small muted" %>
+              <%= link_to current_user.email, user_path(current_user), class: "sidebar-user-link" %>
             <% end %>
 
             <%= button_to "Sign out",

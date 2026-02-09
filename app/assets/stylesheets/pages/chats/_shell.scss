@@ -90,14 +90,20 @@
 }
 
 .sidebar-user-link {
-  display: inline-block;
-  margin-bottom: 6px;
+  display: block;
+  margin-bottom: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
   color: var(--text);
   text-decoration: none;
-  line-height: 1.2;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.25;
+  word-break: break-word;
 
   &:hover,
   &:focus {
+    background: rgba(0, 0, 0, 0.04);
     color: var(--text);
     text-decoration: underline;
     text-decoration-color: rgba(0,0,0,0.3);
