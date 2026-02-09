@@ -19,13 +19,33 @@
     </div>
   </div>
 
-  <div id="admin_ai_usage_report" style="margin-top:14px;">
-    <%= render partial: "admin/ai_usage/report", locals: {
-      company: @company,
-      totals: @totals,
-      requests: @requests,
-      run_rows: @run_rows,
-      chat_rows: @chat_rows
-    } %>
+  <div class="admin-ai-usage__content" style="margin-top:14px;">
+    <div id="admin_ai_usage_report">
+      <%= render partial: "admin/ai_usage/report", locals: {
+        company: @company,
+        totals: @totals,
+        requests: @requests,
+        kind_rows: @kind_rows,
+        run_rows: @run_rows,
+        chat_rows: @chat_rows
+      } %>
+    </div>
+
+    <aside class="card admin-live-feed">
+      <div class="admin-live-feed__header">
+        <h2>Live Requests</h2>
+        <small class="muted">Realtime stream</small>
+      </div>
+
+      <div id="admin_ai_usage_live_feed_items" class="admin-live-feed__items">
+        <% if @live_requests.empty? %>
+          <div id="admin_ai_usage_live_feed_empty" class="admin-live-feed__empty muted">
+            Waiting for first live request…
+          </div>
+        <% else %>
+          <%= render partial: "admin/ai_usage/live_request", collection: @live_requests, as: :usage %>
+        <% end %>
+      </div>
+    </aside>
   </div>
 </section>

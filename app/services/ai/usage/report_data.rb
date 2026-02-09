@@ -13,12 +13,27 @@ module Ai
         {
           totals: aggregate(base),
           requests: base.includes(:chat, :user_message, :ai_message).order(requested_at: :desc).limit(@request_limit),
+          kind_rows: build_kind_rows(base),
           run_rows: build_run_rows(base),
           chat_rows: build_chat_rows(base)
         }
       end
 
       private
+
+      def build_kind_rows(base)
+        rows = base.group(:request_kind)
+                   .select(group_aggregate_select_sql(with_request_kind: true, with_user_message: false, with_chat: false))
+                   .order(Arel.sql("COUNT(*) DESC, MAX(requested_at) DESC"))
+
+        rows.map do |row|
+          aggregate_hash(row).merge(
+            request_kind: row.request_kind.to_s,
+            request_kind_name: human_request_kind(row.request_kind),
+            last_requested_at: row.try(:last_requested_at)
+          )
+        end
+      end
 
       def aggregate(relation)
         row = relation.select(aggregate_select_sql).take
@@ -51,11 +66,17 @@ module Ai
 
       def build_chat_rows(base)
         rows = base.group(:chat_id)
-                   .select(group_aggregate_select_sql(with_user_message: false))
+                   .select(group_aggregate_select_sql(with_user_message: false, with_chat: true))
                    .order(Arel.sql("SUM(total_cost_usd) DESC"))
 
         chats = ::Chat.where(id: rows.map(&:chat_id)).index_by(&:id)
-        rows.map { |row| aggregate_hash(row).merge(chat: chats[row.chat_id], last_requested_at: row.try(:last_requested_at)) }
+        rows.map do |row|
+          aggregate_hash(row).merge(
+            chat_id: row.chat_id,
+            chat: chats[row.chat_id],
+            last_requested_at: row.try(:last_requested_at)
+          )
+        end
       end
 
       def aggregate_select_sql
@@ -68,10 +89,15 @@ module Ai
         SQL
       end
 
-      def group_aggregate_select_sql(with_user_message: true)
-        prefix = with_user_message ? "chat_id, user_message_id," : "chat_id,"
+      def group_aggregate_select_sql(with_request_kind: false, with_user_message: true, with_chat: true)
+        prefix = []
+        prefix << "request_kind" if with_request_kind
+        prefix << "chat_id" if with_chat
+        prefix << "user_message_id" if with_user_message
+        prefix_sql = prefix.any? ? "#{prefix.join(', ')}," : ""
+
         <<~SQL.squish
-          #{prefix}
+          #{prefix_sql}
           COUNT(*) AS requests_count,
           COALESCE(SUM(input_tokens), 0) AS input_tokens,
           COALESCE(SUM(output_tokens), 0) AS output_tokens,
@@ -89,6 +115,10 @@ module Ai
           total_tokens: row.try(:total_tokens).to_i,
           total_cost_usd: row.try(:total_cost_usd).to_d
         }
+      end
+
+      def human_request_kind(kind)
+        kind.to_s.tr("_", " ").squeeze(" ").strip.titleize.presence || "Unknown"
       end
     end
   end

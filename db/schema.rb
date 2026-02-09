@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_09_181000) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_09_194000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -255,7 +255,6 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_09_181000) do
   add_foreign_key "ai_message_metas", "ai_messages"
   add_foreign_key "ai_messages", "user_messages"
   add_foreign_key "ai_request_usages", "ai_messages"
-  add_foreign_key "ai_request_usages", "chats"
   add_foreign_key "ai_request_usages", "companies"
   add_foreign_key "ai_request_usages", "user_messages"
   add_foreign_key "artifacts", "chats"

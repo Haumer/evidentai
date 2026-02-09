@@ -1,6 +1,6 @@
 class AiRequestUsage < ApplicationRecord
   belongs_to :company
-  belongs_to :chat
+  belongs_to :chat, optional: true
   belongs_to :user_message, optional: true
   belongs_to :ai_message, optional: true
 
@@ -22,9 +22,22 @@ class AiRequestUsage < ApplicationRecord
         company: company,
         totals: data[:totals],
         requests: data[:requests],
+        kind_rows: data[:kind_rows],
         run_rows: data[:run_rows],
         chat_rows: data[:chat_rows]
       }
+    )
+
+    Turbo::StreamsChannel.broadcast_remove_to(
+      [company, :ai_usage],
+      target: "admin_ai_usage_live_feed_empty"
+    )
+
+    Turbo::StreamsChannel.broadcast_append_to(
+      [company, :ai_usage],
+      target: "admin_ai_usage_live_feed_items",
+      partial: "admin/ai_usage/live_request",
+      locals: { usage: self }
     )
   rescue => e
     Rails.logger.info("[AiRequestUsage] broadcast refresh failed: #{e.class}: #{e.message}")

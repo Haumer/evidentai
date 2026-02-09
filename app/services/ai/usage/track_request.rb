@@ -83,7 +83,7 @@ module Ai
           output_cost_usd: output_cost,
           total_cost_usd: input_cost + output_cost,
           requested_at: @requested_at,
-          metadata: @metadata
+          metadata: snapshot_metadata
         )
       rescue => e
         Rails.logger.info("[Ai::Usage::TrackRequest] failed: #{e.class}: #{e.message}")
@@ -164,6 +164,17 @@ module Ai
         return 0.to_d if rate_per_1m.to_d <= 0
 
         (tokens.to_d / 1_000_000.to_d) * rate_per_1m.to_d
+      end
+
+      def snapshot_metadata
+        metadata = @metadata.is_a?(Hash) ? @metadata.deep_dup.stringify_keys : {}
+        metadata["actor_user_id"] ||= @user_message&.created_by_id || @chat&.created_by_id
+        metadata["chat_id_snapshot"] ||= @chat&.id
+        metadata["chat_title_snapshot"] ||= @chat&.title.to_s.presence
+        metadata["user_message_id_snapshot"] ||= @user_message&.id
+        metadata.compact
+      rescue
+        @metadata.is_a?(Hash) ? @metadata : {}
       end
     end
   end

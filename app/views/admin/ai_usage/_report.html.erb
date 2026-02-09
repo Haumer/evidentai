@@ -10,6 +10,38 @@
 </div>
 
 <div class="card mb-4" style="padding: 16px; overflow:auto;">
+  <h2 style="margin-top: 0;">Per Request Type</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Key</th>
+        <th>Requests</th>
+        <th>Total Tokens</th>
+        <th>Total Cost</th>
+        <th>Last Request</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if kind_rows.blank? %>
+        <tr><td colspan="6" class="muted">No request types tracked yet.</td></tr>
+      <% else %>
+        <% kind_rows.each do |row| %>
+          <tr>
+            <td><%= row[:request_kind_name] %></td>
+            <td><code><%= row[:request_kind] %></code></td>
+            <td><%= number_with_delimiter(row[:requests_count]) %></td>
+            <td><%= number_with_delimiter(row[:total_tokens]) %></td>
+            <td><%= number_to_currency(row[:total_cost_usd], unit: "$") %></td>
+            <td><%= row[:last_requested_at]&.strftime("%Y-%m-%d %H:%M:%S") || "—" %></td>
+          </tr>
+        <% end %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="card mb-4" style="padding: 16px; overflow:auto;">
   <h2 style="margin-top: 0;">Per Chat</h2>
   <table class="table">
     <thead>
@@ -33,7 +65,7 @@
                 <%= link_to(chat.title.presence || "Untitled chat", chat_path(chat)) %><br>
                 <small class="muted">Chat #<%= chat.id %></small>
               <% else %>
-                <span class="muted">Deleted chat</span>
+                <span class="muted">Deleted chat #<%= row[:chat_id] || "?" %></span>
               <% end %>
             </td>
             <td><%= number_with_delimiter(row[:requests_count]) %></td>
@@ -53,6 +85,7 @@
     <thead>
       <tr>
         <th>Run</th>
+        <th>User ID</th>
         <th>Requests</th>
         <th>Total Tokens</th>
         <th>Total Cost</th>
@@ -62,11 +95,12 @@
     </thead>
     <tbody>
       <% if run_rows.empty? %>
-        <tr><td colspan="6" class="muted">No run-through usage available yet.</td></tr>
+        <tr><td colspan="7" class="muted">No run-through usage available yet.</td></tr>
       <% else %>
         <% run_rows.each do |row| %>
           <% um = row[:user_message] %>
           <% ai_message = row[:ai_message] %>
+          <% user_id = um&.created_by_id || row[:chat]&.created_by_id %>
           <tr>
             <td>
               <% if um.present? %>
@@ -77,6 +111,7 @@
                 <span class="muted">Deleted run</span>
               <% end %>
             </td>
+            <td><%= user_id || "—" %></td>
             <td><%= number_with_delimiter(row[:requests_count]) %></td>
             <td><%= number_with_delimiter(row[:total_tokens]) %></td>
             <td><%= number_to_currency(row[:total_cost_usd], unit: "$") %></td>
@@ -97,6 +132,7 @@
         <th>When</th>
         <th>Kind</th>
         <th>Model</th>
+        <th>User ID</th>
         <th>User Msg</th>
         <th>Input</th>
         <th>Output</th>
@@ -106,13 +142,15 @@
     </thead>
     <tbody>
       <% if requests.empty? %>
-        <tr><td colspan="8" class="muted">No request rows yet.</td></tr>
+        <tr><td colspan="9" class="muted">No request rows yet.</td></tr>
       <% else %>
         <% requests.each do |request| %>
+          <% user_id = request.user_message&.created_by_id || request.chat&.created_by_id || request.metadata["actor_user_id"] || request.metadata[:actor_user_id] %>
           <tr>
             <td><%= request.requested_at&.strftime("%Y-%m-%d %H:%M:%S") || "—" %></td>
             <td><%= request.request_kind %></td>
             <td><%= request.model.presence || "—" %></td>
+            <td><%= user_id || "—" %></td>
             <td><%= request.user_message_id || "—" %></td>
             <td><%= number_with_delimiter(request.input_tokens) %></td>
             <td><%= number_with_delimiter(request.output_tokens) %></td>

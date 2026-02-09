@@ -14,6 +14,7 @@
     <%#= render "shared/navbar" %>
     <%#= render "shared/flashes" %>
     <% admin_page = controller_path.start_with?("admin/") %>
+    <% artifacts_index_page = controller_name == "artifacts" && action_name == "index" %>
 
     <div class="app-shell <%= "app-shell--admin" if admin_page %>">
       <% unless admin_page %>
@@ -21,15 +22,29 @@
           <div class="sidebar-header">
             <div class="brand">EvidentAI</div>
 
-            <%= button_to "New",
-                  chats_path,
-                  method: :post,
-                  class: "btn btn-primary btn-block" %>
+            <nav class="sidebar-nav" aria-label="Primary">
+              <%= link_to "Chats",
+                    chats_path,
+                    class: "sidebar-nav__link #{controller_name == "chats" ? "is-active" : ""}" %>
+              <%= link_to "Artifacts",
+                    artifacts_path,
+                    class: "sidebar-nav__link #{controller_name == "artifacts" ? "is-active" : ""}" %>
+            </nav>
           </div>
 
-          <div class="sidebar-list">
-            <%= render "chats/sidebar", chats: (@chats || []) %>
-          </div>
+          <% unless artifacts_index_page %>
+            <div class="sidebar-list">
+              <div class="sidebar-list__new">
+                <%= button_to "New chat",
+                      chats_path,
+                      method: :post,
+                      class: "btn btn-primary btn-block" %>
+              </div>
+              <%= render "chats/sidebar", chats: (@chats || []) %>
+            </div>
+          <% else %>
+            <div class="sidebar-spacer" aria-hidden="true"></div>
+          <% end %>
 
           <div class="sidebar-footer">
             <% if current_user %>

@@ -1,0 +1,20 @@
+<% user_id = usage.user_message&.created_by_id || usage.chat&.created_by_id || usage.metadata["actor_user_id"] || usage.metadata[:actor_user_id] %>
+<% chat_id = usage.chat_id || usage.metadata["chat_id_snapshot"] || usage.metadata[:chat_id_snapshot] %>
+
+<article id="<%= dom_id(usage, :live) %>" class="admin-live-feed__item">
+  <div class="admin-live-feed__topline">
+    <span class="admin-live-feed__time"><%= usage.requested_at&.strftime("%H:%M:%S") || "—" %></span>
+    <span class="admin-live-feed__kind"><%= usage.request_kind.to_s.tr("_", " ").titleize %></span>
+  </div>
+
+  <div class="admin-live-feed__line">
+    <strong><%= usage.model.presence || "Unknown model" %></strong>
+  </div>
+
+  <div class="admin-live-feed__line muted">
+    <span>User #<%= user_id || "—" %></span>
+    <span>Chat #<%= chat_id || "—" %></span>
+    <span><%= number_with_delimiter(usage.total_tokens) %> tok</span>
+    <span><%= number_to_currency(usage.total_cost_usd, unit: "$") %></span>
+  </div>
+</article>
