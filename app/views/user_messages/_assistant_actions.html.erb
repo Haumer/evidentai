@@ -31,48 +31,13 @@
 
   suggestions =
     if context_enabled
-      actions.flat_map do |action|
-        payload = action.payload.is_a?(Hash) ? action.payload : {}
-        raw = Array(payload["suggestions"]) + Array(payload["questions"])
-        if raw.empty?
-          fallback =
-            payload["prompt_template"].to_s.presence ||
-            payload["title"].to_s.presence ||
-            payload["subject"].to_s.presence
-          raw << fallback if fallback.present?
-        end
-
-        raw
-      end
+      extract_concrete_context_suggestions(
+        actions: actions,
+        current_instruction: user_message.instruction.to_s
+      )
     else
       []
     end
-
-  normalize_suggestion = lambda do |value|
-    s = value.to_s.tr("“”", "\"").tr("‘’", "'").squish
-    s = s.sub(/\A["']+/, "").sub(/["']+\z/, "")
-    s = s.sub(/\s+["']\z/, "")
-    s.strip
-  end
-
-  low_signal_suggestion = lambda do |value|
-    s = value.to_s.downcase
-    return true if s.blank?
-    return true if s.include?("single-sentence confirmation")
-    return true if s.match?(/\bok\?\s*\z/)
-    return true if s.match?(/\bconfirm(?:ation)?\b/) && s.match?(/\b(already|current|existing|same|above|this)\b/)
-    false
-  end
-
-  current_instruction = user_message.instruction.to_s.squish.downcase
-
-  suggestions = suggestions
-    .map { |s| normalize_suggestion.call(s) }
-    .reject(&:blank?)
-    .reject { |s| s.downcase == current_instruction }
-    .reject { |s| low_signal_suggestion.call(s) }
-    .uniq
-    .first(2)
 
   should_render = latest && (suggestions.any? || !context_enabled)
 %>

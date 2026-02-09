@@ -301,7 +301,12 @@ module Ai
 
         Defaulting guidance:
         - If the user message is only an acknowledgement/closure (e.g. "thanks", "great", "ok"), output [].
-        - If additional context could improve the next output, prefer "suggest_additional_context" with 1-4 concrete suggestions.
+        - If additional context could improve the next output, you MAY propose "suggest_additional_context" with 1-4 suggestions.
+        - Suggestions must be concrete, copy-ready user messages (single sentence), not field labels.
+          Good: "Do you have time Tuesday at 10:00 or Thursday at 14:00?"
+          Bad: "Preferred appointment window (morning/afternoon; dates)"
+        - Do not use placeholders like [DATE], [TIME], <name>, or "{...}".
+        - If you cannot infer concrete suggestions, output no "suggest_additional_context" action.
         - Suggestions must add new, actionable context (audience, scope, constraints, format, examples).
           Do NOT suggest reconfirming what is already known, do NOT output "OK?" confirmations,
           and do NOT wrap suggestion text in quotes.
