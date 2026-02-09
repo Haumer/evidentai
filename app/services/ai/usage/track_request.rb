@@ -15,7 +15,7 @@ module Ai
           metadata: {},
           requested_at: Time.current
         )
-          row = start(
+          usage_row = start(
             request_kind: request_kind,
             provider: provider,
             model: model,
@@ -25,10 +25,10 @@ module Ai
             metadata: metadata,
             requested_at: requested_at
           )
-          return nil if row.blank?
+          return nil if usage_row.blank?
 
           finish!(
-            usage_row: row,
+            usage_row: usage_row,
             model: model,
             provider_request_id: provider_request_id,
             usage: usage,
@@ -36,7 +36,7 @@ module Ai
             metadata: metadata
           )
         rescue => e
-          fail!(usage_row: row, error: e.message) if defined?(row) && row.present?
+          fail!(usage_row: usage_row, error: e.message) if defined?(usage_row) && usage_row.present?
           Rails.logger.info("[Ai::Usage::TrackRequest] failed: #{e.class}: #{e.message}")
           nil
         end

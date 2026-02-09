@@ -24,7 +24,7 @@ Rails.application.routes.draw do
 
   # NOTE: Artifacts are "read-only" as a resource, but we allow dataset cell edits
   # via nested routes (Turbo Frames) to support user-owned dataset corrections.
-  resources :artifacts, only: [:show] do
+  resources :artifacts, only: [:index, :show] do
     scope module: :artifacts do
       resources :datasets, only: [] do
         # Show a cell in non-editing mode (used for Cancel)

@@ -7,6 +7,7 @@ export default class extends Controller {
     this.beforeStreamRender = this.beforeStreamRender.bind(this)
     this.pendingUpdates = 0
     this.minUpdatingMs = 450
+    this.completedMs = 900
     this.statusTimer = null
     document.addEventListener("turbo:before-stream-render", this.beforeStreamRender)
     this.setLiveStatus()
@@ -35,14 +36,25 @@ export default class extends Controller {
 
   setUpdatingStatus() {
     if (this.hasStatusTarget) {
+      this.statusTarget.classList.remove("is-complete")
       this.statusTarget.classList.remove("is-live")
       this.statusTarget.classList.add("is-updating")
     }
     if (this.hasLabelTarget) this.labelTarget.textContent = "Updating…"
   }
 
+  setCompleteStatus() {
+    if (this.hasStatusTarget) {
+      this.statusTarget.classList.remove("is-updating")
+      this.statusTarget.classList.remove("is-live")
+      this.statusTarget.classList.add("is-complete")
+    }
+    if (this.hasLabelTarget) this.labelTarget.textContent = `Updated ${this.nowLabel()}`
+  }
+
   setLiveStatus() {
     if (this.hasStatusTarget) {
+      this.statusTarget.classList.remove("is-complete")
       this.statusTarget.classList.remove("is-updating")
       this.statusTarget.classList.add("is-live")
     }
@@ -57,7 +69,12 @@ export default class extends Controller {
 
     this.statusTimer = setTimeout(() => {
       this.pendingUpdates = Math.max(0, this.pendingUpdates - 1)
-      if (this.pendingUpdates === 0) this.setLiveStatus()
+      if (this.pendingUpdates !== 0) return
+
+      this.setCompleteStatus()
+      this.statusTimer = setTimeout(() => {
+        if (this.pendingUpdates === 0) this.setLiveStatus()
+      }, this.completedMs)
     }, remaining)
   }
 
