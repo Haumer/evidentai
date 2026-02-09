@@ -5,6 +5,7 @@
     - row_index: Integer
     - col_index: Integer
     - value: any
+    - computed: Boolean
     - editing: Boolean
     - error: String|nil
 %>
@@ -13,6 +14,7 @@
   dataset_index = dataset_index.to_i
   row_index = row_index.to_i
   col_index = col_index.to_i
+  computed = local_assigns[:computed] == true
 
   frame_id = "dataset_cell_#{dataset_index}_#{row_index}_#{col_index}"
 
@@ -34,7 +36,15 @@
 %>
 
 <%= turbo_frame_tag frame_id do %>
-  <% if editing %>
+  <% if editing && computed %>
+    <span class="sheet-cell-display is-readonly" title="Computed cell (auto-updated)">
+      <%= display_value %>
+      <span class="sheet-cell-badge">fx</span>
+    </span>
+    <% if error.present? %>
+      <div class="sheet-cell-error"><%= error %></div>
+    <% end %>
+  <% elsif editing %>
     <%= form_with(
           url: artifact_dataset_cell_update_path(artifact, dataset_index, row_index, col_index),
           method: :patch,
@@ -59,9 +69,16 @@
       </div>
     <% end %>
   <% else %>
-    <%= link_to display_value,
-                artifact_dataset_cell_edit_path(artifact, dataset_index, row_index, col_index),
-                data: { turbo_frame: frame_id },
-                class: "sheet-cell-display" %>
+    <% if computed %>
+      <span class="sheet-cell-display is-readonly" title="Computed cell (auto-updated)">
+        <%= display_value %>
+        <span class="sheet-cell-badge">fx</span>
+      </span>
+    <% else %>
+      <%= link_to display_value,
+                  artifact_dataset_cell_edit_path(artifact, dataset_index, row_index, col_index),
+                  data: { turbo_frame: frame_id },
+                  class: "sheet-cell-display" %>
+    <% end %>
   <% end %>
 <% end %>

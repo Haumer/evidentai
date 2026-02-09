@@ -22,6 +22,19 @@ class Artifact < ApplicationRecord
     datasets[index.to_i]
   end
 
+  def computed_column_indexes(dataset_index:)
+    dataset = dataset_at(dataset_index)
+    return [] unless dataset.is_a?(Hash)
+
+    Ai::Artifacts::Dataset::ComputedCells.computed_column_indexes(dataset)
+  rescue
+    []
+  end
+
+  def computed_cell?(dataset_index:, col_index:)
+    computed_column_indexes(dataset_index: dataset_index).include?(col_index.to_i)
+  end
+
   def update_dataset_cell!(dataset_index:, row_index:, col_index:, value:)
     dj = dataset_json.presence || { "version" => 1, "datasets" => [] }
 
@@ -31,8 +44,13 @@ class Artifact < ApplicationRecord
 
     raise ArgumentError, "Dataset not found" unless dj["datasets"].is_a?(Array) && dj["datasets"][d_i].is_a?(Hash)
 
-    rows = dj["datasets"][d_i]["rows"]
+    dataset = dj["datasets"][d_i]
+    rows = dataset["rows"]
     raise ArgumentError, "Rows not found" unless rows.is_a?(Array) && rows[r_i].is_a?(Array)
+    raise ArgumentError, "Cell not found" unless c_i >= 0 && c_i < rows[r_i].length
+
+    computed_columns = Ai::Artifacts::Dataset::ComputedCells.computed_column_indexes(dataset)
+    raise ArgumentError, "Computed cell is read-only" if computed_columns.include?(c_i)
 
     old = rows[r_i][c_i]
     raw = value.to_s.strip
@@ -45,6 +63,7 @@ class Artifact < ApplicationRecord
       end
 
     rows[r_i][c_i] = new_value
+    dj = Ai::Artifacts::Dataset::ComputedCells.apply(dj)
 
     raise ArgumentError, "Dataset too large" if dj.to_json.bytesize > MAX_DATASET_BYTES
 

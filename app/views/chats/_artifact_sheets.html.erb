@@ -88,7 +88,7 @@
           <% end %>
 
           <% if editable %>
-            <span class="artifact-sheets__meta-hint">Click a cell to edit.</span>
+            <span class="artifact-sheets__meta-hint">Click a cell to edit. Formula columns auto-calculate.</span>
           <% else %>
             <span class="artifact-sheets__meta-hint">Saving artifact… (editing will enable shortly).</span>
           <% end %>
@@ -110,12 +110,14 @@
                   <% Array(row).each_with_index do |cell, col_index| %>
                     <td>
                       <% if editable %>
+                        <% computed = artifact.computed_cell?(dataset_index: idx, col_index: col_index) %>
                         <%= render partial: "chats/artifact_sheets/cell", locals: {
                           artifact: artifact,
                           dataset_index: idx,
                           row_index: row_index,
                           col_index: col_index,
                           value: cell,
+                          computed: computed,
                           editing: false,
                           error: nil
                         } %>

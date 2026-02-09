@@ -45,12 +45,17 @@ module Ai
           artifact.created_by_id = @user_message.created_by_id
         end
 
+        normalized_dataset_json =
+          if @dataset_json.present?
+            Ai::Artifacts::Dataset::ComputedCells.apply(@dataset_json)
+          end
+
         final_text = @generated_text.to_s
 
         artifact.assign_attributes(artifact_content_attributes(final_text))
 
         if Artifact.column_names.include?("dataset_json")
-          artifact.dataset_json = @dataset_json
+          artifact.dataset_json = normalized_dataset_json
         end
         if Artifact.column_names.include?("sources_json")
           artifact.sources_json = @sources_json
@@ -60,15 +65,11 @@ module Ai
         end
 
         # Ensure displayed/stored HTML reflects whatever dataset_json is currently authoritative.
-        if Artifact.column_names.include?("dataset_json") && artifact.dataset_json.present?
-          injected = Ai::Artifacts::Dataset::Inject.new(
-            html: final_text,
-            dataset_json: artifact.dataset_json
-          ).call
-
-          final_text = injected.to_s
-          artifact.assign_attributes(artifact_content_attributes(final_text))
-        end
+        final_text = Ai::Artifacts::Dataset::ApplyToHtml.call(
+          html: final_text,
+          dataset_json: artifact.dataset_json
+        ).to_s
+        artifact.assign_attributes(artifact_content_attributes(final_text))
 
         artifact.save!
 

@@ -74,6 +74,7 @@ module Ai
            - Include a clearly labeled DATA TABLE in the HTML.
            - Units MUST be included in column headers where applicable.
            - The table values are the source of truth for the visual output.
+           - If any column is derived from other columns (example: C = A - B), mark that header with " (computed)".
 
         2) Sources section
            - Include a section titled exactly: "Sources".
@@ -83,6 +84,9 @@ module Ai
         3) Dataset payload
            - Include a <script type="application/json" id="artifact_dataset"> block.
            - The JSON must exactly match the numbers shown in the table.
+           - For charts/graphs, include an empty placeholder:
+             <section id="artifact_dataset_visuals"></section>
+             (server-rendered visuals are injected there from the dataset JSON).
 
         4) Uncertainty disclosure (MANDATORY when data is not faithful)
            - If ANY part of the data is:
@@ -119,12 +123,17 @@ module Ai
                 "name": "...",
                 "units": "...",
                 "schema": ["col1", "col2", ...],
-                "rows": [[...], [...]]
+                "rows": [[...], [...]],
+                "computed_columns": [
+                  { "index": 2, "formula": "A - B" }
+                ]
               }
             ]
           }
         - Numbers must be numbers (not strings) unless they are identifiers/labels.
         - The JSON must match the visible table values exactly.
+        - Use computed_columns when a column is basic arithmetic from other columns (+, -, *, /).
+        - Never invent hidden business logic; only include straightforward row-level formulas.
 
         Stability rule (minimize churn):
         - Do NOT reword or restructure unaffected sections.
