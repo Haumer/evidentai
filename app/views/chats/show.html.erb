@@ -8,9 +8,7 @@
   <section class="chat-pane">
     <div class="chat <%= 'is-empty' if @user_messages.blank? %>" data-controller="chat-scroll">
       <header class="chat-header">
-        <h1 class="chat-title">
-          <%= @chat.title.presence || "Untitled chat" %>
-        </h1>
+        <%= render partial: "chats/title", locals: { chat: @chat } %>
         <div class="chat-meta">
           <span class="pill"><%= @chat.status.presence || "active" %></span>
         </div>
@@ -30,9 +28,6 @@
             <%= render partial: "user_messages/row",
                        locals: { user_message: user_message } %>
           <% end %>
-
-          <!-- Stable target for "Updating output…" status inside the chat -->
-          <div id="chat_run_status"></div>
         </div>
       </div>
 
@@ -70,34 +65,15 @@
   <aside class="artifact-pane">
     <div id="artifact_live">
       <!-- STABLE TARGET: must ALWAYS exist -->
-      <div id="artifact_content">
-        <%
-          artifact_text =
-            if @artifact.present?
-              if @artifact.respond_to?(:content) && @artifact.content.present?
-                @artifact.content.is_a?(Hash) ? @artifact.content["text"].to_s : @artifact.content.to_s
-              elsif @artifact.respond_to?(:data) && @artifact.data.present?
-                @artifact.data.is_a?(Hash) ? @artifact.data["text"].to_s : @artifact.data.to_s
-              elsif @artifact.respond_to?(:body) && @artifact.body.present?
-                @artifact.body.to_s
-              elsif @artifact.respond_to?(:text) && @artifact.text.present?
-                @artifact.text.to_s
-              else
-                ""
-              end
-            else
-              @user_messages.reverse_each.lazy
-                .map { |um| um.ai_message&.content&.dig("preview").to_s }
-                .find { |t| t.present? }.to_s
-            end
-        %>
-
+      <%= turbo_frame_tag "artifact_content" do %>
         <%= render partial: "chats/artifact_preview",
                    locals: {
-                     text: artifact_text,
-                     status: (artifact_text.present? ? "draft" : "waiting")
+                     text: @artifact_text,
+                     status: (@artifact_text.present? ? "draft" : "waiting"),
+                     chat: @chat,
+                     artifact: @artifact
                    } %>
-      </div>
+      <% end %>
     </div>
   </aside>
 

@@ -38,7 +38,7 @@ module Ai
           text: "⚠️ Failed to generate output: #{e.message}",
           status: "ready"
         )
-        run_status_broadcaster.ready rescue nil
+        run_status_broadcaster.clear rescue nil
         @context.artifact_updated = false
       end
 

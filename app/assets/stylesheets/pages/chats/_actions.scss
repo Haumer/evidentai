@@ -92,6 +92,24 @@
   padding: 12px;
 }
 
+.action-card__summary {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: rgba(0, 0, 0, 0.78);
+  margin-bottom: 6px;
+}
+
+.action-card__list {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.72);
+}
+
 .action-card__details {
   margin-top: 10px;
 }

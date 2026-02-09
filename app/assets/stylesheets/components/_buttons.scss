@@ -1,31 +1,94 @@
 .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  font-weight: 600;
+  line-height: 1;
+
   border-radius: 12px;
   padding: 10px 12px;
   border: 1px solid var(--border);
-  background: var(--panel);
+  background: rgba(0, 0, 0, 0.02);
   color: var(--text);
   cursor: pointer;
+  text-decoration: none;
 
-  &:hover { background: rgba(0,0,0,0.03); }
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.06);
+    border-color: rgba(0, 0, 0, 0.16);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.18);
+  }
+
+  &:disabled,
+  &[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
 }
 
 .btn-primary {
-  border-color: rgba(10,132,255,0.30);
-  background: rgba(10,132,255,0.12);
+  $primary-text: rgba(9, 84, 154, 1);
+  border-color: rgba(10, 132, 255, 0.42);
+  background: rgba(10, 132, 255, 0.16);
+  color: $primary-text;
 
-  &:hover { background: rgba(10,132,255,0.16); }
+  &:hover,
+  &:focus,
+  &:active {
+    background: rgba(10, 132, 255, 0.24);
+    border-color: rgba(10, 132, 255, 0.52);
+    color: $primary-text;
+  }
+
+  &:disabled,
+  &[disabled] {
+    background: rgba(10, 132, 255, 0.12);
+    border-color: rgba(10, 132, 255, 0.28);
+    color: rgba(9, 84, 154, 0.8);
+  }
 }
 
-.btn-secondary { opacity: 0.9; }
+.btn-secondary {
+  $secondary-text: rgba(29, 29, 31, 0.86);
+  border-color: rgba(0, 0, 0, 0.14);
+  background: rgba(255, 255, 255, 0.96);
+  color: $secondary-text;
+
+  &:hover,
+  &:focus,
+  &:active {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.2);
+    color: $secondary-text;
+  }
+}
+
 .btn-block { width: 100%; }
 
 .btn-link {
   background: transparent;
   border: none;
-  padding: 0;
+  padding: 4px 0;
   color: var(--muted);
   cursor: pointer;
+
+  &:hover {
+    background: transparent;
+    color: var(--text);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
 }
+
 .btn-icon {
   width: 36px;
   height: 36px;
@@ -41,8 +104,18 @@
   height: 40px;
   padding: 0;
   border-radius: 999px;
-  border-color: rgba(10,132,255,0.30);
-  background: rgba(10,132,255,0.16);
+  border-color: rgba(10, 132, 255, 0.42);
+  background: rgba(10, 132, 255, 0.2);
+  color: rgba(8, 72, 132, 1);
 
-  &:hover { background: rgba(10,132,255,0.20); }
+  &:hover {
+    background: rgba(10, 132, 255, 0.3);
+    border-color: rgba(10, 132, 255, 0.5);
+  }
+}
+
+.btn-small {
+  padding: 6px 8px;
+  border-radius: 10px;
+  font-size: 12px;
 }

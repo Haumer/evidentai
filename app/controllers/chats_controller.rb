@@ -1,7 +1,7 @@
 # app/controllers/chats_controller.rb
 class ChatsController < ApplicationController
   before_action :ensure_membership!
-  before_action :set_chat, only: %i[show edit update destroy edit_title update_title sidebar_title]
+  before_action :set_chat, only: %i[show artifact_preview edit update destroy edit_title update_title sidebar_title]
 
   def index
     @chats = Chat.where(company: @company).order(updated_at: :desc)
@@ -23,6 +23,30 @@ class ChatsController < ApplicationController
 
     # Right-side output (latest artifact)
     @artifact = @chat.artifacts.order(created_at: :desc).first
+    @artifact_text = @artifact.present? ? artifact_text_for(@artifact) : latest_preview_text
+  end
+
+  # Turbo-frame endpoint for artifact version navigation.
+  # GET /chats/:id/artifact_preview?artifact_id=123
+  def artifact_preview
+    artifacts_scope = @chat.artifacts.order(created_at: :desc)
+    @artifact =
+      if params[:artifact_id].present?
+        artifacts_scope.find_by(id: params[:artifact_id]) || artifacts_scope.first
+      else
+        artifacts_scope.first
+      end
+
+    artifact_text = @artifact.present? ? artifact_text_for(@artifact) : ""
+    status = artifact_text.present? ? "ready" : "waiting"
+
+    render partial: "chats/artifact_preview",
+           locals: {
+             text: artifact_text,
+             status: status,
+             chat: @chat,
+             artifact: @artifact
+           }
   end
 
   # GET /chats/new
@@ -57,7 +81,24 @@ class ChatsController < ApplicationController
       title_set_by_user: true
     )
 
-    render partial: "chats/sidebar_title", locals: { chat: @chat }
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: [
+          turbo_stream.replace(
+            "chat_#{@chat.id}_title",
+            partial: "chats/title",
+            locals: { chat: @chat, animate: true }
+          ),
+          turbo_stream.replace(
+            "chat_#{@chat.id}_sidebar_title",
+            partial: "chats/sidebar_title",
+            locals: { chat: @chat, animate: true }
+          )
+        ]
+      end
+
+      format.html { redirect_to chat_path(@chat) }
+    end
   end
 
   # POST /chats
@@ -106,5 +147,27 @@ class ChatsController < ApplicationController
       redirect_to setup_path and return
     end
     @company = membership.company
+  end
+
+  def latest_preview_text
+    @chat.user_messages.reverse_each.lazy
+      .map { |um| um.ai_message&.content&.dig("preview").to_s }
+      .find { |t| t.present? }.to_s
+  end
+
+  def artifact_text_for(artifact)
+    return "" unless artifact
+
+    if artifact.respond_to?(:content) && artifact.content.present?
+      artifact.content.is_a?(Hash) ? artifact.content["text"].to_s : artifact.content.to_s
+    elsif artifact.respond_to?(:data) && artifact.data.present?
+      artifact.data.is_a?(Hash) ? artifact.data["text"].to_s : artifact.data.to_s
+    elsif artifact.respond_to?(:body) && artifact.body.present?
+      artifact.body.to_s
+    elsif artifact.respond_to?(:text) && artifact.text.present?
+      artifact.text.to_s
+    else
+      ""
+    end
   end
 end

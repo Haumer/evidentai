@@ -31,6 +31,12 @@ module Ai
         assistant_text = extract_assistant_text(ai_message)
         instruction = @user_message.instruction.to_s
 
+        if acknowledgement_only?(instruction)
+          persist_actions!(ai_message: ai_message, extracted_actions: [])
+          store_raw!(ai_message: ai_message, raw: "[]", extracted: [])
+          return []
+        end
+
         raw = request_actions_json(
           instruction: instruction,
           assistant_text: assistant_text,
@@ -162,6 +168,18 @@ module Ai
 
       def openai_client
         @openai_client ||= OpenAI::Client.new(api_key: ENV.fetch("OPENAI_API_KEY"))
+      end
+
+      def acknowledgement_only?(instruction)
+        text = instruction.to_s.strip
+        return false if text.blank?
+
+        normalized = text.downcase.gsub(/[^a-z0-9\s]/, " ").squeeze(" ").strip
+        return false if normalized.blank?
+
+        normalized.match?(
+          /\A(?:thanks|thank you|thx|ok|okay|great|awesome|nice|perfect|cool|sounds good|got it|all good|that works|done)\z/
+        )
       end
     end
   end

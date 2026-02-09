@@ -14,8 +14,8 @@ module Ai
     def call
       ChatReplyStep.new(context: @run_context).call
       IntentStep.new(context: @run_context).call
-      ArtifactStep.new(context: @run_context).call if @run_context.should_generate_artifact?
       ActionsStep.new(context: @run_context).call
+      ArtifactStep.new(context: @run_context).call if @run_context.should_generate_artifact?
     end
   end
 end
