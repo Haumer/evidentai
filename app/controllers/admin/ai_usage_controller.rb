@@ -15,7 +15,6 @@ module Admin
                       .order(requested_at: :desc)
                       .limit(120)
                       .to_a
-                      .reverse
     end
 
     private
