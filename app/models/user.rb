@@ -9,6 +9,10 @@ class User < ApplicationRecord
   has_many :memberships, dependent: :destroy
   has_many :companies, through: :memberships
 
+  def display_name
+    email.to_s.split("@").first.to_s.strip.presence || email.to_s
+  end
+
   def context_suggestions_enabled?
     return true unless has_attribute?(:context_suggestions_enabled)
 

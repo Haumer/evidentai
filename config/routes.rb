@@ -44,6 +44,7 @@ Rails.application.routes.draw do
 
   # ---- Supporting ----
   resources :attachments, only: [:create, :destroy]
+  resources :users, only: [:show, :update]
   resources :memberships
   resources :companies
 

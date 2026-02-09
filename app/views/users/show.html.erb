@@ -1,0 +1,46 @@
+<section class="profile-page">
+  <header class="profile-page__header">
+    <h1>Profile</h1>
+    <p>Manage your account and defaults for future chats.</p>
+  </header>
+
+  <div class="profile-grid">
+    <article class="profile-card">
+      <h2>Account</h2>
+      <dl class="profile-meta">
+        <div>
+          <dt>Name</dt>
+          <dd><%= @user.display_name %></dd>
+        </div>
+        <div>
+          <dt>Email</dt>
+          <dd><%= @user.email %></dd>
+        </div>
+        <% if @company %>
+          <div>
+            <dt>Company</dt>
+            <dd><%= @company.name %></dd>
+          </div>
+        <% end %>
+      </dl>
+
+      <%= link_to "Edit email or password", edit_user_registration_path, class: "btn btn-secondary" %>
+    </article>
+
+    <article class="profile-card">
+      <h2>Settings</h2>
+
+      <%= form_with model: @user, url: user_path(@user), method: :patch, class: "profile-form" do |f| %>
+        <label class="profile-toggle">
+          <%= f.check_box :context_suggestions_enabled %>
+          <span>
+            <strong>Context suggestions</strong>
+            <small class="muted">Allow assistant suggestions that ask for extra context in chat.</small>
+          </span>
+        </label>
+
+        <%= f.submit "Save settings", class: "btn btn-primary" %>
+      <% end %>
+    </article>
+  </div>
+</section>

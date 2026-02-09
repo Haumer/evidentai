@@ -89,6 +89,21 @@
   background: var(--panel);
 }
 
+.sidebar-user-link {
+  display: inline-block;
+  margin-bottom: 6px;
+  color: var(--text);
+  text-decoration: none;
+  line-height: 1.2;
+
+  &:hover,
+  &:focus {
+    color: var(--text);
+    text-decoration: underline;
+    text-decoration-color: rgba(0,0,0,0.3);
+  }
+}
+
 .sidebar-footer .btn-link {
   text-decoration: none;
 }
