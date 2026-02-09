@@ -1,0 +1,85 @@
+/* app/assets/stylesheets/pages/chats/_chat_messages.scss */
+/* Message rows, bubbles, attachments, and assistant ghost placeholder */
+
+.message {
+  display: flex;
+  margin-bottom: 12px;
+}
+
+.message-user { justify-content: flex-end; }
+.message-assistant { justify-content: flex-start; }
+
+.message-assistant .message-bubble {
+  background: rgba(255,255,255,0.9);
+}
+
+.message-bubble {
+  max-width: 720px;
+  width: auto;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: var(--panel);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+}
+
+.message-user .message-bubble {
+  background: var(--blue-2);
+  border-color: rgba(10,132,255,0.22);
+}
+
+.message-label {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.message-text {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.message-foot {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.attachments {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.attachment-chip {
+  display: inline-flex;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.03);
+  border: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.attachment-kind { color: var(--muted); }
+
+.code {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: rgba(0,0,0,0.03);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  font-size: 12px;
+  overflow: auto;
+}
+
+.assistant-ghost {
+  margin-top: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

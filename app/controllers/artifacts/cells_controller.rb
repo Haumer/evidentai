@@ -22,10 +22,10 @@ module Artifacts
       )
 
       # 1) Ensure dataset JSON is embedded (persistence / portability).
-      html = Ai::ArtifactDatasetInjector.new(html: @artifact.content, dataset_json: @artifact.dataset_json).call
+      html = Ai::Artifacts::Dataset::Inject.new(html: @artifact.content, dataset_json: @artifact.dataset_json).call
 
       # 2) Ensure a visible HTML representation exists so the iframe visibly changes after edits.
-      html = Ai::ArtifactDatasetTableInjector.call(html: html, dataset_json: @artifact.dataset_json)
+      html = Ai::Artifacts::Dataset::InjectTables.call(html: html, dataset_json: @artifact.dataset_json)
 
       @artifact.update!(content: html)
 
@@ -38,7 +38,7 @@ module Artifacts
         turbo_stream.replace(
           "artifact_iframe",
           partial: "chats/artifact_iframe",
-          locals: { artifact: @artifact, text: Ai::ArtifactDatasetStripper.call(@artifact.content) }
+          locals: { artifact: @artifact, text: Ai::Artifacts::Dataset::Strip.call(@artifact.content) }
         )
       ]
     rescue ArgumentError => e

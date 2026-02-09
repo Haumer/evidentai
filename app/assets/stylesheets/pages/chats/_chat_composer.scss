@@ -1,0 +1,55 @@
+/* app/assets/stylesheets/pages/chats/_chat_composer.scss */
+/* Bottom composer panel and input interactions */
+
+.composer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  padding: 14px 22px 18px;
+  border-top: 1px solid var(--border);
+  background: rgba(245,245,247,0.85);
+  backdrop-filter: blur(12px);
+}
+
+.composer-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+
+  background: rgba(255,255,255,0.95);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 10px 10px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+}
+
+.composer-input { flex: 1; }
+
+.composer-textarea {
+  width: 100%;
+  resize: none;
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  box-shadow: none;
+
+  &:focus { box-shadow: none; }
+}
+
+.composer-form:focus-within {
+  border-color: rgba(10,132,255,0.35);
+  box-shadow:
+    0 0 0 4px rgba(10,132,255,0.10),
+    0 6px 18px rgba(0,0,0,0.06);
+}
+
+.composer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

@@ -1,0 +1,35 @@
+/* app/assets/stylesheets/pages/chats/_artifact_working.scss */
+/* Inline working indicator in artifact header */
+
+.artifact-working {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-1px);
+  transition: opacity 140ms ease;
+}
+
+.artifact-working.is-active {
+  opacity: 1;
+}
+
+.artifact-spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(0,0,0,0.18);
+  border-top-color: rgba(10,132,255,0.85);
+  animation: artifactSpin 700ms linear infinite;
+}
+
+@keyframes artifactSpin {
+  to { transform: rotate(360deg); }
+}
+
+.artifact-working-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(0,0,0,0.55);
+}

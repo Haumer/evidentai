@@ -66,7 +66,7 @@ module Ai
 
           # Ensure displayed/stored HTML reflects whatever dataset_json is currently authoritative.
           if Artifact.column_names.include?("dataset_json") && artifact.dataset_json.present?
-            injected = Ai::ArtifactDatasetInjector.new(
+            injected = Ai::Artifacts::Dataset::Inject.new(
               html: final_text,
               dataset_json: artifact.dataset_json
             ).call
