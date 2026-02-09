@@ -10,7 +10,8 @@
   --shadow: 0 8px 24px rgba(0,0,0,0.08);
   --radius: 14px;
   --radius-lg: 18px;
-  --font: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  --font: "IBM Plex Sans", "Helvetica", sans-serif;
+  --font-heading: "Space Grotesk", "Helvetica", sans-serif;
 }
 
 html, body {
@@ -18,6 +19,12 @@ html, body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
 }
 
 /* Small shared utilities */

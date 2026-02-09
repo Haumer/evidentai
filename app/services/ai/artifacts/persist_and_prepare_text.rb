@@ -2,11 +2,11 @@
 #
 # app/services/ai/artifacts/persist_and_prepare_text.rb
 #
-# Persists the artifact and returns the FINAL html/text that should be displayed.
+# Persists a NEW artifact version and returns the FINAL html/text that should be displayed.
 #
 # Rules:
-# - If dataset_locked_by_user = true, never overwrite dataset_json from extracted AI output.
-# - Always inject the authoritative dataset_json into the stored HTML so the iframe reflects the DB dataset.
+# - Always create a new Artifact row for each generated output version.
+# - Inject dataset_json into stored HTML so the iframe reflects the DB dataset.
 #
 # IMPORTANT:
 # - Schema may require artifacts.company_id, artifacts.created_by_id, artifacts.chat_id (NOT NULL).
@@ -34,49 +34,43 @@ module Ai
       end
 
       def call
-        artifact = Artifact.find_or_initialize_by(chat_id: @chat.id)
+        artifact = Artifact.new(chat_id: @chat.id)
 
         # Satisfy NOT NULL constraints reliably.
-        if Artifact.column_names.include?("company_id") && artifact.company_id.blank?
+        if Artifact.column_names.include?("company_id")
           artifact.company_id = @user_message.company_id
         end
 
-        if Artifact.column_names.include?("created_by_id") && artifact.created_by_id.blank?
+        if Artifact.column_names.include?("created_by_id")
           artifact.created_by_id = @user_message.created_by_id
         end
 
         final_text = @generated_text.to_s
 
-        artifact.with_lock do
-          artifact.assign_attributes(artifact_content_attributes(final_text))
+        artifact.assign_attributes(artifact_content_attributes(final_text))
 
-          has_dataset_cols =
-            Artifact.column_names.include?("dataset_json") &&
-              Artifact.column_names.include?("dataset_locked_by_user")
-
-          if has_dataset_cols
-            unless artifact.dataset_locked_by_user?
-              artifact.dataset_json = @dataset_json
-              artifact.sources_json = @sources_json if Artifact.column_names.include?("sources_json")
-            end
-          elsif Artifact.column_names.include?("dataset_json")
-            artifact.dataset_json = @dataset_json
-            artifact.sources_json = @sources_json if Artifact.column_names.include?("sources_json")
-          end
-
-          # Ensure displayed/stored HTML reflects whatever dataset_json is currently authoritative.
-          if Artifact.column_names.include?("dataset_json") && artifact.dataset_json.present?
-            injected = Ai::Artifacts::Dataset::Inject.new(
-              html: final_text,
-              dataset_json: artifact.dataset_json
-            ).call
-
-            final_text = injected.to_s
-            artifact.assign_attributes(artifact_content_attributes(final_text))
-          end
-
-          artifact.save!
+        if Artifact.column_names.include?("dataset_json")
+          artifact.dataset_json = @dataset_json
         end
+        if Artifact.column_names.include?("sources_json")
+          artifact.sources_json = @sources_json
+        end
+        if Artifact.column_names.include?("dataset_locked_by_user")
+          artifact.dataset_locked_by_user = false if artifact.dataset_locked_by_user.nil?
+        end
+
+        # Ensure displayed/stored HTML reflects whatever dataset_json is currently authoritative.
+        if Artifact.column_names.include?("dataset_json") && artifact.dataset_json.present?
+          injected = Ai::Artifacts::Dataset::Inject.new(
+            html: final_text,
+            dataset_json: artifact.dataset_json
+          ).call
+
+          final_text = injected.to_s
+          artifact.assign_attributes(artifact_content_attributes(final_text))
+        end
+
+        artifact.save!
 
         final_text
       rescue => e

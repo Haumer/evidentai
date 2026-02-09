@@ -31,6 +31,49 @@
   flex-shrink: 0;
 }
 
+.artifact-version-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.artifact-version-arrow {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: rgba(0, 0, 0, 0.66);
+  font-size: 15px;
+  line-height: 1;
+  border: 1px solid transparent;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.06);
+    border-color: rgba(0, 0, 0, 0.12);
+    color: rgba(0, 0, 0, 0.82);
+  }
+}
+
+.artifact-version-arrow.is-disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.artifact-version-count {
+  min-width: 34px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 650;
+  color: rgba(0, 0, 0, 0.64);
+}
+
 .artifact-title {
   margin: 0;
   font-size: 16px;

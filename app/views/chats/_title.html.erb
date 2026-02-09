@@ -1,0 +1,15 @@
+<%# app/views/chats/_title.html.erb %>
+<%# Expects: chat %>
+
+<%
+  title_text = chat.title.presence || "Untitled chat"
+  animate = !!local_assigns[:animate]
+  title_target_id = dom_id(chat, :title)
+%>
+
+<h1 class="chat-title" id="<%= title_target_id %>"
+    data-controller="typewriter"
+    data-typewriter-text-value="<%= title_text %>"
+    data-typewriter-enabled-value="<%= animate %>">
+  <%= animate ? "" : title_text %>
+</h1>

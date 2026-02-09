@@ -1,0 +1,74 @@
+<%# app/views/user_messages/_assistant_actions.html.erb %>
+<%# Expects: user_message %>
+
+<%
+  ai_message = user_message.ai_message
+  actions = ai_message&.proposed_actions&.proposed&.order(created_at: :asc).to_a
+  actions ||= []
+%>
+
+<% if actions.any? %>
+  <div class="assistant-actions">
+    <div class="assistant-actions__header">
+      <div class="assistant-actions__title">Options</div>
+      <div class="assistant-actions__hint">Shown only when useful</div>
+    </div>
+
+    <div class="assistant-actions__grid">
+      <% actions.each do |action| %>
+        <%
+          payload = action.payload.is_a?(Hash) ? action.payload : {}
+          catalog = Ai::Actions::Catalog.fetch(action.action_type)
+          type_label = catalog&.title.to_s.presence || action.action_type.to_s.humanize
+          type_hint = catalog&.description.to_s
+
+          title_text =
+            payload["title"].to_s.presence ||
+            payload["subject"].to_s.presence ||
+            payload["prompt_template"].to_s.presence ||
+            type_label
+
+          suggestions = Array(payload["suggestions"]).map { |s| s.to_s.strip }.reject(&:blank?)
+          questions = Array(payload["questions"]).map { |s| s.to_s.strip }.reject(&:blank?)
+        %>
+
+        <article class="action-card">
+          <div class="action-card__header">
+            <div class="action-card__title">
+              <span class="action-card__badge">Optional</span>
+              <span class="action-card__type"><%= type_label %></span>
+            </div>
+            <span class="action-card__meta"><%= action.status %></span>
+          </div>
+
+          <div class="action-card__body">
+            <div class="action-card__summary"><%= title_text %></div>
+
+            <% if type_hint.present? %>
+              <div class="assistant-actions__hint"><%= type_hint %></div>
+            <% end %>
+
+            <% if suggestions.any? %>
+              <ul class="action-card__list">
+                <% suggestions.each do |item| %>
+                  <li><%= item %></li>
+                <% end %>
+              </ul>
+            <% elsif questions.any? %>
+              <ul class="action-card__list">
+                <% questions.each do |item| %>
+                  <li><%= item %></li>
+                <% end %>
+              </ul>
+            <% else %>
+              <details class="action-card__details">
+                <summary class="action-card__details-summary">Details</summary>
+                <pre class="action-card__payload"><%= JSON.pretty_generate(payload) %></pre>
+              </details>
+            <% end %>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  </div>
+<% end %>

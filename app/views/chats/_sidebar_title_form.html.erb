@@ -12,11 +12,11 @@
           autofocus: true %>
 
     <div class="sidebar-chat__title-actions">
-      <%= f.submit "Save", class: "sidebar-chat__title-save" %>
+      <%= f.submit "Save", class: "btn btn-primary sidebar-chat__title-save" %>
 
       <%= link_to "Cancel",
             sidebar_title_chat_path(chat),
-            class: "sidebar-chat__title-cancel",
+            class: "btn btn-secondary sidebar-chat__title-cancel",
             data: { turbo_frame: dom_id(chat, :sidebar_title) } %>
     </div>
   <% end %>

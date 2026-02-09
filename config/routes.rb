@@ -7,6 +7,7 @@ Rails.application.routes.draw do
   resources :chats, only: [:index, :show, :create, :update, :destroy] do
     resources :user_messages, only: [:create]
     member do
+      get :artifact_preview
       get :edit_title
       get :sidebar_title
       patch :update_title

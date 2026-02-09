@@ -5,6 +5,11 @@
   status = status.to_s
   is_working = (status == "working")
   has_text = text.to_s.strip.present?
+  status_label = is_working ? "updating" : (has_text ? "ready" : "waiting")
+
+  chat =
+    local_assigns[:chat] ||
+    (defined?(@chat) && @chat)
 
   # Resolve artifact reliably (Turbo broadcasts don't set controller ivars)
   artifact =
@@ -12,11 +17,27 @@
     (defined?(@artifact) && @artifact)
 
   if artifact.blank?
-    chat =
-      local_assigns[:chat] ||
-      (defined?(@chat) && @chat)
     artifact = Artifact.where(chat_id: chat.id).order(created_at: :desc).first if chat.present?
   end
+
+  versions =
+    if chat.present?
+      Artifact.where(chat_id: chat.id).order(created_at: :desc).to_a
+    else
+      []
+    end
+
+  if versions.empty? && artifact.present?
+    versions = [artifact]
+  end
+
+  current_artifact = artifact || versions.first
+  current_index = versions.index { |v| v.id == current_artifact&.id } || 0
+  total_versions = versions.size
+  current_number = total_versions.zero? ? 0 : (total_versions - current_index)
+
+  older_artifact = (current_index + 1 < total_versions) ? versions[current_index + 1] : nil
+  newer_artifact = current_index.positive? ? versions[current_index - 1] : nil
 
   # Dataset discovery (no iframe JS; server-side parse only)
   # Prefer persisted dataset_json if available; fallback to parsing the HTML.
@@ -45,31 +66,42 @@
   <div class="artifact-header-left">
     <h2 class="artifact-title">Output</h2>
     <div class="artifact-subtitle">
-      <% if is_working %>
-        <%= has_text ? "Updating…" : "Generating…" %>
-      <% else %>
-        <%= has_text ? "" : "No output yet" %>
-      <% end %>
+      <%= has_text ? "Most recent version" : "Ready for your first request" %>
     </div>
   </div>
 
   <div class="artifact-header-right">
+    <div class="artifact-version-nav" aria-label="Artifact versions">
+      <% if older_artifact.present? && chat.present? %>
+        <%= link_to "‹",
+                    artifact_preview_chat_path(chat, artifact_id: older_artifact.id),
+                    class: "artifact-version-arrow",
+                    data: { turbo_frame: "artifact_content" } %>
+      <% else %>
+        <span class="artifact-version-arrow is-disabled">‹</span>
+      <% end %>
+
+      <span class="artifact-version-count"><%= "#{current_number}/#{total_versions}" %></span>
+
+      <% if newer_artifact.present? && chat.present? %>
+        <%= link_to "›",
+                    artifact_preview_chat_path(chat, artifact_id: newer_artifact.id),
+                    class: "artifact-version-arrow",
+                    data: { turbo_frame: "artifact_content" } %>
+      <% else %>
+        <span class="artifact-version-arrow is-disabled">›</span>
+      <% end %>
+    </div>
+
     <% if dataset_locked %>
       <span class="pill is-muted" title="This dataset has been edited. AI updates will not overwrite it.">
         Data edited
       </span>
     <% end %>
 
-    <% if is_working %>
-      <div class="artifact-working is-active" aria-live="polite">
-        <span class="artifact-spinner" aria-hidden="true"></span>
-        <span class="artifact-working-text">Generating…</span>
-      </div>
-    <% end %>
-
     <span class="pill <%= "is-live" if has_text %> <%= "is-working" if is_working %>">
       <span class="pill-dot"></span>
-      <%= is_working ? "working" : (has_text ? "ready" : "waiting") %>
+      <%= status_label %>
     </span>
   </div>
 </header>
@@ -81,14 +113,13 @@
     <%= render partial: "chats/artifact_iframe", locals: { artifact: artifact, text: iframe_text } %>
   <% else %>
     <div class="artifact-empty-card">
-      <h3>No output yet</h3>
-      <p class="muted">As you chat, the generated result will appear here.</p>
+      <h3>Output Will Appear Here</h3>
+      <p class="muted">Ask for a draft, summary, or plan and it will render in this pane.</p>
 
-      <div class="artifact-skeleton" aria-hidden="true">
-        <div class="skel-line w-70"></div>
-        <div class="skel-line w-90"></div>
-        <div class="skel-line w-55"></div>
-        <div class="skel-line w-75"></div>
+      <div class="artifact-empty-minimal" aria-hidden="true">
+        <div class="artifact-empty-minimal__mark">
+          <span></span>
+        </div>
       </div>
     </div>
   <% end %>

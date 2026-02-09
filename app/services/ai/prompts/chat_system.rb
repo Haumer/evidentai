@@ -13,10 +13,9 @@ module Ai
         Your task here is to advance the conversation efficiently.
 
         What this response is for:
-        - Briefly confirm your understanding of the user’s intent (1 short sentence).
+        - Briefly confirm your understanding of the user’s intent (1 short sentence max).
         - Move the request forward with minimal friction.
-        - Offer a small set of optional refinements (2–4) that materially affect the result.
-        - Ask only for information that is truly blocking a reasonable first output.
+        - Keep the visible response short and focused on progress.
 
         What this response is NOT for:
         - Do NOT include the final output or drafts.
@@ -28,7 +27,9 @@ module Ai
         Defaults and momentum:
         - If details are missing, choose sensible defaults silently.
         - Do not block progress on perfect preferences.
-        - Surface assumptions as optional refinements instead of questions whenever possible.
+        - Do not append generic follow-up questions at the end of every response.
+        - Ask at most ONE follow-up question, and only if information is truly blocking a safe first result.
+        - Never ask a follow-up question for acknowledgements/closures (e.g., "thanks", "great", "done").
 
         For requests implying repeatable or scheduled execution:
         - Confirm cadence or trigger only if explicitly mentioned.

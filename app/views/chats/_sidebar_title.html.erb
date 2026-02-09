@@ -1,14 +1,23 @@
 <%# app/views/chats/_sidebar_title.html.erb %>
 
 <%# Expects: chat %>
+<%
+  title_text = chat.title.presence || "Untitled"
+  animate = !!local_assigns[:animate]
+%>
 
 <%= turbo_frame_tag dom_id(chat, :sidebar_title), class: "sidebar-item__title-frame" do %>
   <div class="sidebar-item-title">
     <%= link_to(
-          (chat.title.presence || "Untitled"),
+          (animate ? "" : title_text),
           edit_title_chat_path(chat),
           class: "sidebar-chat__title-link",
-          data: { turbo_frame: dom_id(chat, :sidebar_title) }
+          data: {
+            turbo_frame: dom_id(chat, :sidebar_title),
+            controller: "typewriter",
+            typewriter_text_value: title_text,
+            typewriter_enabled_value: animate
+          }
         ) %>
   </div>
 <% end %>

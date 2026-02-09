@@ -10,10 +10,6 @@
       <div class="message-text">
         <%= render_markdown(text) %>
       </div>
-
-      <div class="message-foot">
-        <span class="muted small"><%= user_message.updated_at.strftime("%H:%M") %></span>
-      </div>
     </div>
 
     <%# Status indicator lives directly below the assistant message bubble %>

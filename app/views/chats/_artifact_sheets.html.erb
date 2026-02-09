@@ -16,7 +16,7 @@
     (defined?(@artifact) && @artifact)
 
   if artifact.blank? && chat.present?
-    artifact = Artifact.find_by(chat: chat)
+    artifact = Artifact.where(chat_id: chat.id).order(created_at: :desc).first
   end
 
   editable = artifact.present?

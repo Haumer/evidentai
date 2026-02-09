@@ -100,6 +100,25 @@ module Ai
       ),
 
       Action.new(
+        type: "suggest_additional_context",
+        title: "Suggest additional context",
+        description: "Offer optional context that could improve the next output version.",
+        payload_required_keys: %w[suggestions],
+        payload_optional_keys: %w[title why],
+        examples: [
+          {
+            title: "Could improve the next revision",
+            why: "A few specifics would tighten the result.",
+            suggestions: [
+              "Target audience (execs, analysts, or customers)",
+              "Preferred depth (quick summary vs detailed breakdown)",
+              "Time horizon to prioritize (next 30/90/365 days)"
+            ]
+          }
+        ]
+      ),
+
+      Action.new(
         type: "request_missing_info",
         title: "Request missing info",
         description: "Ask the human for missing fields needed to proceed safely.",
@@ -158,6 +177,13 @@ module Ai
       unexpected = keys - allowed
       raise ArgumentError, "Invalid payload for #{type}: unexpected #{unexpected.join(', ')}" if unexpected.any?
 
+      case type.to_s
+      when "request_missing_info"
+        validate_string_array!(payload["questions"], field: "questions", min: 1, max: 3)
+      when "suggest_additional_context"
+        validate_string_array!(payload["suggestions"], field: "suggestions", min: 1, max: 4)
+      end
+
       true
     end
 
@@ -200,6 +226,18 @@ module Ai
     end
     private_class_method :blankish?
 
+    def self.validate_string_array!(value, field:, min:, max:)
+      unless value.is_a?(Array)
+        raise ArgumentError, "Invalid payload: #{field} must be an array"
+      end
+
+      normalized = value.map { |v| v.to_s.strip }.reject(&:empty?)
+      if normalized.length < min || normalized.length > max
+        raise ArgumentError, "Invalid payload: #{field} must have #{min}-#{max} non-empty entries"
+      end
+    end
+    private_class_method :validate_string_array!
+
     # This is meant to be embedded in your system prompt.
     # Keep it short and machine-friendly.
     def self.as_system_prompt_json
@@ -239,7 +277,7 @@ module Ai
         Core rules:
         - You MUST NOT execute actions. You may only PROPOSE actions.
         - Only propose action types from the catalog below.
-        - Prefer proposing a concrete action using sensible defaults rather than asking follow-up questions.
+        - Prefer proposing a concrete action using sensible defaults rather than asking follow-up questions in chat text.
         - Use "request_missing_info" ONLY when you cannot form a VALID payload for any allowed action, even with defaults.
         - Payload keys must match the required/optional keys exactly (no extras).
 
@@ -253,6 +291,8 @@ module Ai
         ]
 
         Defaulting guidance:
+        - If the user message is only an acknowledgement/closure (e.g. "thanks", "great", "ok"), output [].
+        - If additional context could improve the next output, prefer "suggest_additional_context" with 1-4 concrete suggestions.
         - If the user requests recurring behavior (daily/morning/weekly/etc.), propose "schedule_prompt".
         - For "each morning" with no time: default to 08:00 (local timezone).
         - If location is missing for weather, still propose "schedule_prompt" if you can, and ask for ONE missing field only if needed.
