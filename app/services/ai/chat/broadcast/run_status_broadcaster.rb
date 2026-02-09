@@ -18,31 +18,32 @@ module Ai
           @user_message = user_message
         end
 
-        def working
-          replace_run_status(state: "working")
+        def working(started_at: Time.current)
+          replace_run_status(state: "working", started_at: started_at)
           update_composer(disabled: true)
         end
 
         def ready
-          replace_run_status(state: "ready")
+          replace_run_status(state: "ready", started_at: nil)
           update_composer(disabled: false)
         end
 
         def clear
           # Keep the stable target in the DOM; just render "idle" (empty UI).
-          replace_run_status(state: "idle")
+          replace_run_status(state: "idle", started_at: nil)
         end
 
         private
 
-        def replace_run_status(state:)
+        def replace_run_status(state:, started_at:)
           Turbo::StreamsChannel.broadcast_replace_to(
             @chat,
             target: run_status_target_id,
             partial: RUN_STATUS_PARTIAL,
             locals: {
               user_message_id: @user_message.id,
-              state: state
+              state: state,
+              started_at: started_at
             }
           )
         end

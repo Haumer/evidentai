@@ -224,6 +224,11 @@
   color: var(--muted-text);
 }
 
+.admin-live-feed__status-text--timer {
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
 .admin-live-feed__state {
   position: relative;
   width: 12px;

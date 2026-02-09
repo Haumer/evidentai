@@ -45,6 +45,11 @@
   white-space: nowrap;
 }
 
+.run-status__text--timer {
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
 .run-status__spinner {
   width: 12px;
   height: 12px;

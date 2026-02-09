@@ -11,14 +11,21 @@
 <% um = local_assigns[:user_message] %>
 <% um_id = local_assigns[:user_message_id] || um&.id %>
 <% state = (local_assigns[:state].presence || "idle").to_s %>
+<% started_at = local_assigns[:started_at] || Time.current %>
 
 <%# If we don't know which message this belongs to, render nothing (never crash). %>
 <% if um_id.present? %>
   <div id="assistant_run_status_user_message_<%= um_id %>" class="assistant-run-status">
     <% if state == "working" %>
-      <div class="run-status run-status--working" role="status" aria-live="polite">
+      <div
+        class="run-status run-status--working"
+        role="status"
+        aria-live="polite"
+        data-controller="elapsed-timer"
+        data-elapsed-timer-prefix-value="Updating"
+        data-elapsed-timer-started-at-value="<%= started_at.to_time.iso8601(3) %>">
         <span class="run-status__spinner" aria-hidden="true"></span>
-        <span class="run-status__text">Updating</span>
+        <span class="run-status__text run-status__text--timer" data-elapsed-timer-target="label">Updating</span>
       </div>
     <% elsif state == "ready" %>
       <div class="run-status run-status--ready" role="status" aria-live="polite">

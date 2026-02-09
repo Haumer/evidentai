@@ -2,6 +2,7 @@
 <% chat_id = usage.chat_id || usage.metadata["chat_id_snapshot"] || usage.metadata[:chat_id_snapshot] %>
 <% status = usage.status.to_s.presence || "completed" %>
 <% status_label = status == "running" ? "Running" : (status == "failed" ? "Failed" : "Done") %>
+<% started_at = usage.requested_at || usage.created_at || Time.current %>
 
 <article id="<%= dom_id(usage, :live) %>" class="admin-live-feed__item is-<%= status %>">
   <div class="admin-live-feed__topline">
@@ -12,7 +13,17 @@
   <div class="admin-live-feed__line">
     <span class="admin-live-feed__state" aria-hidden="true"></span>
     <strong><%= usage.model.presence || "Unknown model" %></strong>
-    <span class="admin-live-feed__status-text"><%= status_label %></span>
+    <% if status == "running" %>
+      <span
+        class="admin-live-feed__status-text admin-live-feed__status-text--timer"
+        data-controller="elapsed-timer"
+        data-elapsed-timer-prefix-value="Running"
+        data-elapsed-timer-started-at-value="<%= started_at.to_time.iso8601(3) %>">
+        Running
+      </span>
+    <% else %>
+      <span class="admin-live-feed__status-text"><%= status_label %></span>
+    <% end %>
   </div>
 
   <div class="admin-live-feed__line muted">
