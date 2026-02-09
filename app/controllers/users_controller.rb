@@ -11,6 +11,15 @@ class UsersController < ApplicationController
     redirect_to user_path(@user), notice: "Settings updated."
   end
 
+  def reactivate_suggestions
+    company_ids = current_user.memberships.select(:company_id)
+
+    @user.update!(context_suggestions_enabled: true)
+    Chat.where(company_id: company_ids).update_all(context_suggestions_enabled: true)
+
+    redirect_to user_path(@user), notice: "Suggestions re-activated for all chats."
+  end
+
   private
 
   def set_user

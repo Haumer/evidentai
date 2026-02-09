@@ -74,27 +74,20 @@
     .uniq
     .first(2)
 
-  message_dismissed =
-    if context_enabled && user_message.respond_to?(:suggestions_dismissed?)
-      user_message.suggestions_dismissed?
-    else
-      false
-    end
-
   should_render = latest && (suggestions.any? || !context_enabled)
 %>
 
 <% if should_render %>
   <div
-    class="assistant-actions <%= "is-disabled" unless context_enabled %> <%= "is-collapsed" if message_dismissed %>"
-    data-controller="assistant-suggestions"
-    data-assistant-suggestions-context-enabled-value="<%= context_enabled %>"
-    data-assistant-suggestions-has-suggestions-value="<%= suggestions.any? %>"
-    data-assistant-suggestions-toggle-url-value="<%= toggle_suggestions_chat_user_message_path(chat, user_message) %>"
-    data-assistant-suggestions-initially-dismissed-value="<%= message_dismissed %>">
+    class="assistant-actions <%= "is-disabled" unless context_enabled %>">
 
     <% if context_enabled && suggestions.any? %>
-      <div class="assistant-actions__content" data-assistant-suggestions-target="content">
+      <div class="assistant-actions__header">
+        <div class="assistant-actions__title">Suggested follow-ups</div>
+        <div class="assistant-actions__subtitle">Tap to insert into composer</div>
+      </div>
+
+      <div class="assistant-actions__content">
         <div class="assistant-actions__list">
           <% suggestions.each do |suggestion| %>
             <button
@@ -109,38 +102,19 @@
           <% end %>
         </div>
       </div>
-
-      <div class="assistant-actions__collapsed" data-assistant-suggestions-target="collapsedNotice">
-        Suggestions dismissed for this message.
-      </div>
     <% else %>
-      <div class="assistant-actions__empty">
-        <%= account_enabled ? "Suggestions are dismissed for this chat." : "Suggestions are dismissed for all chats." %>
+      <div class="assistant-actions__status">
+        <% if account_enabled %>
+          Suggestions are off for this chat.
+        <% else %>
+          Suggestions are off for all chats.
+        <% end %>
       </div>
     <% end %>
 
     <div class="assistant-actions__footer">
-      <% if context_enabled && suggestions.any? %>
-        <button
-          type="button"
-          class="btn btn-secondary btn-small"
-          data-action="assistant-suggestions#dismiss"
-          data-assistant-suggestions-target="dismissButton"
-          <%= "hidden" if message_dismissed %>>
-          Dismiss suggestions
-        </button>
-        <button
-          type="button"
-          class="btn btn-secondary btn-small"
-          data-action="assistant-suggestions#restore"
-          data-assistant-suggestions-target="restoreButton"
-          <%= "hidden" unless message_dismissed %>>
-          Show suggestions
-        </button>
-      <% end %>
-
       <%= button_to(
-            (chat_enabled ? "Dismiss for this chat" : "Show in this chat"),
+            (chat_enabled ? "Hide in this chat" : "Show in this chat"),
             toggle_context_suggestions_chat_path(chat),
             method: :patch,
             params: { scope: "chat", enabled: (!chat_enabled), user_message_id: user_message.id },
@@ -149,7 +123,7 @@
           ) %>
 
       <%= button_to(
-            (account_enabled ? "Dismiss for all chats" : "Show in all chats"),
+            (account_enabled ? "Hide in all chats" : "Show in all chats"),
             toggle_context_suggestions_chat_path(chat),
             method: :patch,
             params: { scope: "account", enabled: (!account_enabled), user_message_id: user_message.id },

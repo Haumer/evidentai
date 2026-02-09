@@ -13,15 +13,4 @@ class UserMessage < ApplicationRecord
   def artifact_updated?
     respond_to?(:artifact_updated_at) && artifact_updated_at.present?
   end
-
-  def suggestions_dismissed?
-    settings_hash = settings.is_a?(Hash) ? settings : {}
-    settings_hash["suggestions_dismissed"] == true
-  end
-
-  def with_suggestions_dismissed(dismissed)
-    settings_hash = settings.is_a?(Hash) ? settings.deep_dup : {}
-    settings_hash["suggestions_dismissed"] = !!dismissed
-    settings_hash
-  end
 end

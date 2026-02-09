@@ -62,6 +62,13 @@
   gap: 14px;
 }
 
+.profile-inline-actions {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .profile-toggle {
   display: flex;
   align-items: flex-start;

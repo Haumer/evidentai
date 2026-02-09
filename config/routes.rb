@@ -5,11 +5,7 @@ Rails.application.routes.draw do
 
   # ---- Core app ----
   resources :chats, only: [:index, :show, :create, :update, :destroy] do
-    resources :user_messages, only: [:create] do
-      member do
-        patch :toggle_suggestions
-      end
-    end
+    resources :user_messages, only: [:create]
     member do
       get :artifact_preview
       get :edit_title
@@ -54,7 +50,11 @@ Rails.application.routes.draw do
 
   # ---- Supporting ----
   resources :attachments, only: [:create, :destroy]
-  resources :users, only: [:show, :update]
+  resources :users, only: [:show, :update] do
+    member do
+      patch :reactivate_suggestions
+    end
+  end
   resources :memberships
   resources :companies
 
