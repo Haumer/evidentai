@@ -6,8 +6,16 @@ module Admin
       data = Ai::Usage::ReportData.new(company: @company).call
       @totals = data[:totals]
       @requests = data[:requests]
+      @kind_rows = data[:kind_rows]
       @run_rows = data[:run_rows]
       @chat_rows = data[:chat_rows]
+      @live_requests =
+        AiRequestUsage.where(company_id: @company.id)
+                      .includes(:chat, :user_message)
+                      .order(requested_at: :desc)
+                      .limit(120)
+                      .to_a
+                      .reverse
     end
 
     private

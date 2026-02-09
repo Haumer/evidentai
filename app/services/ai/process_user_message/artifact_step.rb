@@ -49,6 +49,15 @@ module Ai
         data_resolution = resolve_available_data
         persist_data_resolution_flags!(data_resolution)
 
+        usage_row = Ai::Usage::TrackRequest.start(
+          request_kind: "artifact_generate",
+          provider: @context.provider.to_s,
+          model: @context.model.to_s,
+          user_message: @user_message,
+          ai_message: @context.ai_message,
+          chat: @chat
+        )
+
         result = client.generate(
           prompt_snapshot: Ai::Artifacts::ComposeUpdateMessages.messages(
             @user_message,
@@ -59,8 +68,11 @@ module Ai
           model: @context.model
         )
 
-        track_usage!(result)
+        track_usage!(result, usage_row: usage_row)
         result.fetch(:text).to_s
+      rescue => e
+        Ai::Usage::TrackRequest.fail!(usage_row: usage_row, error: e.message.to_s) if usage_row.present?
+        raise
       end
 
       def resolve_available_data
@@ -129,17 +141,16 @@ module Ai
         )
       end
 
-      def track_usage!(result)
-        Ai::Usage::TrackRequest.call(
-          request_kind: "artifact_generate",
-          provider: result[:provider].to_s.presence || @context.provider,
+      def track_usage!(result, usage_row:)
+        return unless usage_row
+
+        Ai::Usage::TrackRequest.finish!(
+          usage_row: usage_row,
           model: result[:model].to_s.presence || @context.model,
           provider_request_id: result[:provider_request_id],
           usage: result[:usage],
           raw: result[:raw],
-          user_message: @user_message,
-          ai_message: @context.ai_message,
-          chat: @chat
+          metadata: { provider: result[:provider].to_s.presence || @context.provider }
         )
       rescue
         nil

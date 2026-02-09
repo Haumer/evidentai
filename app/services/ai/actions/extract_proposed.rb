@@ -86,6 +86,15 @@ module Ai
           allowed_action_types: allowed_types
         }.compact
 
+        usage_row = Ai::Usage::TrackRequest.start(
+          request_kind: "actions_extract",
+          provider: "openai",
+          model: DEFAULT_MODEL,
+          user_message: @user_message,
+          ai_message: @user_message.ai_message,
+          chat: @user_message.chat
+        )
+
         resp = openai_client.responses.create(
           model: DEFAULT_MODEL,
           input: [
@@ -93,7 +102,7 @@ module Ai
             { role: "user", content: user.to_json }
           ]
         )
-        track_usage!(resp)
+        track_usage!(resp, usage_row: usage_row)
 
         if resp.respond_to?(:output_text)
           resp.output_text.to_s
@@ -102,6 +111,9 @@ module Ai
         else
           resp.to_s
         end
+      rescue => e
+        Ai::Usage::TrackRequest.fail!(usage_row: usage_row, error: e.message.to_s) if usage_row.present?
+        raise
       end
 
       def parse_json_array(raw)
@@ -231,15 +243,14 @@ module Ai
         end
       end
 
-      def track_usage!(response)
-        Ai::Usage::TrackRequest.call(
-          request_kind: "actions_extract",
-          provider: "openai",
+      def track_usage!(response, usage_row:)
+        return unless usage_row
+
+        Ai::Usage::TrackRequest.finish!(
+          usage_row: usage_row,
           model: DEFAULT_MODEL,
           raw: response,
-          user_message: @user_message,
-          ai_message: @user_message.ai_message,
-          chat: @user_message.chat
+          metadata: {}
         )
       rescue
         nil

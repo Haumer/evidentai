@@ -64,22 +64,33 @@ module Ai
           chat_reply_text: @ai_message.text
         ).call
 
+        usage_row = Ai::Usage::TrackRequest.start(
+          request_kind: "intent_extract",
+          provider: DEFAULT_PROVIDER,
+          model: @model,
+          user_message: @user_message,
+          ai_message: @ai_message,
+          chat: @user_message.chat
+        )
+
         result = @client.generate(prompt_snapshot: messages, model: @model)
-        track_usage!(result)
+        track_usage!(result, usage_row: usage_row)
         result.fetch(:text).to_s
+      rescue => e
+        Ai::Usage::TrackRequest.fail!(usage_row: usage_row, error: e.message.to_s) if usage_row.present?
+        raise
       end
 
-      def track_usage!(result)
-        Ai::Usage::TrackRequest.call(
-          request_kind: "intent_extract",
-          provider: result[:provider].to_s.presence || DEFAULT_PROVIDER,
+      def track_usage!(result, usage_row:)
+        return unless usage_row
+
+        Ai::Usage::TrackRequest.finish!(
+          usage_row: usage_row,
           model: result[:model].to_s.presence || @model,
           provider_request_id: result[:provider_request_id],
           usage: result[:usage],
           raw: result[:raw],
-          user_message: @user_message,
-          ai_message: @ai_message,
-          chat: @user_message.chat
+          metadata: { provider: result[:provider].to_s.presence || DEFAULT_PROVIDER }
         )
       rescue
         nil

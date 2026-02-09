@@ -12,11 +12,13 @@ module Ai
         persist.mark_running!
         ai_message = persist.ensure_ai_message!
         assumed_defaults = assumed_defaults_for_confirmation
+        usage_row = nil
 
         accumulated = +""
         last_broadcast_len = 0
 
         broadcaster.start(accumulated: accumulated)
+        usage_row = start_usage_tracking(ai_message: ai_message)
 
         final_text = streamer.call do |delta|
           next if delta.blank?
@@ -42,11 +44,12 @@ module Ai
           model: @context.model,
           assumed_defaults: assumed_defaults
         )
-        track_usage!(ai_message: ai_message)
+        finish_usage_tracking(usage_row)
         broadcaster.final
 
         @context.ai_message = ai_message
       rescue => e
+        fail_usage_tracking(usage_row, e)
         persist.mark_failed!(e) rescue nil
         broadcaster.stream(accumulated: "⚠️ #{e.message}") rescue nil
         raise
@@ -84,16 +87,40 @@ module Ai
         )
       end
 
-      def track_usage!(ai_message:)
-        Ai::Usage::TrackRequest.call(
+      def start_usage_tracking(ai_message:)
+        Ai::Usage::TrackRequest.start(
           request_kind: "chat_reply_stream",
-          provider: @context.provider,
-          model: streamer.response_model,
-          provider_request_id: streamer.provider_request_id,
-          usage: streamer.response_usage,
+          provider: @context.provider.to_s,
+          model: @context.model.to_s,
           user_message: @user_message,
           ai_message: ai_message,
           chat: @context.chat,
+          metadata: { stream: true }
+        )
+      rescue
+        nil
+      end
+
+      def finish_usage_tracking(usage_row)
+        return unless usage_row
+
+        Ai::Usage::TrackRequest.finish!(
+          usage_row: usage_row,
+          model: streamer.response_model,
+          provider_request_id: streamer.provider_request_id,
+          usage: streamer.response_usage,
+          metadata: { stream: true }
+        )
+      rescue
+        nil
+      end
+
+      def fail_usage_tracking(usage_row, error)
+        return unless usage_row
+
+        Ai::Usage::TrackRequest.fail!(
+          usage_row: usage_row,
+          error: error.message.to_s,
           metadata: { stream: true }
         )
       rescue

@@ -25,12 +25,25 @@ module Ai
       #   raw_text: String
       # }
       def call(query_text:, context_text: nil, preferred_sources: nil, user_message: nil, ai_message: nil, chat: nil)
+        usage_row = Ai::Usage::TrackRequest.start(
+          request_kind: "web_search_fetch",
+          provider: "openai",
+          model: @model,
+          user_message: user_message,
+          ai_message: ai_message,
+          chat: chat
+        )
+
         response = run_response_with_tool_fallback(
           query_text: query_text.to_s,
           context_text: context_text.to_s,
           preferred_sources: preferred_sources
         )
-        track_usage!(response, user_message: user_message, ai_message: ai_message, chat: chat)
+        Ai::Usage::TrackRequest.finish!(
+          usage_row: usage_row,
+          model: @model,
+          raw: response
+        )
 
         raw_text = extract_output_text(response)
         parsed = parse_json_object(raw_text)
@@ -48,6 +61,7 @@ module Ai
           raw_text: raw_text
         }
       rescue => e
+        Ai::Usage::TrackRequest.fail!(usage_row: usage_row, error: e.message.to_s) if usage_row.present?
         {
           ok: false,
           error: e.message,
@@ -371,19 +385,6 @@ module Ai
         nil
       end
 
-      def track_usage!(response, user_message:, ai_message:, chat:)
-        Ai::Usage::TrackRequest.call(
-          request_kind: "web_search_fetch",
-          provider: "openai",
-          model: @model,
-          raw: response,
-          user_message: user_message,
-          ai_message: ai_message,
-          chat: chat
-        )
-      rescue
-        nil
-      end
     end
   end
 end
