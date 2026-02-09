@@ -1,5 +1,6 @@
 require "json"
 require "openai"
+require "uri"
 
 module Ai
   module Data
@@ -33,7 +34,11 @@ module Ai
 
         raw_text = extract_output_text(response)
         parsed = parse_json_object(raw_text)
-        normalized = normalize_payload(parsed, query_text: query_text.to_s)
+        normalized = normalize_payload(
+          parsed,
+          query_text: query_text.to_s,
+          response: response
+        )
 
         {
           ok: true,
@@ -125,6 +130,10 @@ module Ai
                 ],
                 "notes": string | null
               }
+
+              Source URL quality rules:
+              - Use direct page URLs for the cited facts (deep links), not site homepages.
+              - Only use a homepage URL when a specific page URL is truly unavailable.
             TEXT
           }
         ]
@@ -173,22 +182,11 @@ module Ai
         raise JSON::ParserError, "No JSON object found in web search response"
       end
 
-      def normalize_payload(parsed, query_text:)
+      def normalize_payload(parsed, query_text:, response:)
         payload = parsed.is_a?(Hash) ? parsed : {}
         dataset = payload["dataset"]
         dataset = nil unless dataset.is_a?(Hash)
-
-        sources = Array(payload["sources"]).first(MAX_SOURCES).map do |entry|
-          next unless entry.is_a?(Hash)
-
-          {
-            "title" => entry["title"].to_s,
-            "url" => entry["url"].to_s,
-            "publisher" => entry["publisher"].presence,
-            "published_at" => entry["published_at"].presence,
-            "notes" => entry["notes"].presence
-          }.compact
-        end.compact
+        sources = normalize_sources(payload["sources"], response: response)
 
         {
           available_data: {
@@ -201,6 +199,176 @@ module Ai
           }.compact,
           sources_json: sources
         }
+      end
+
+      def normalize_sources(source_entries, response:)
+        model_sources = normalize_source_entries(source_entries)
+        citation_sources = extract_cited_sources(response)
+
+        if model_sources.empty?
+          return citation_sources.first(MAX_SOURCES)
+        end
+
+        citations_by_host = citation_sources.group_by { |entry| host_for(entry["url"]) }
+        enriched = model_sources.map do |entry|
+          enrich_source_with_citation(
+            entry,
+            citations_by_host: citations_by_host,
+            citation_sources: citation_sources
+          )
+        end
+
+        dedupe_sources(enriched).first(MAX_SOURCES)
+      end
+
+      def normalize_source_entries(source_entries)
+        Array(source_entries).first(MAX_SOURCES).filter_map do |entry|
+          next unless entry.is_a?(Hash)
+
+          url = normalize_url(entry["url"])
+          next if url.blank?
+
+          {
+            "title" => entry["title"].to_s.presence,
+            "url" => url,
+            "publisher" => entry["publisher"].presence,
+            "published_at" => entry["published_at"].presence,
+            "notes" => entry["notes"].presence
+          }.compact
+        end
+      end
+
+      def enrich_source_with_citation(entry, citations_by_host:, citation_sources:)
+        current_url = entry["url"].to_s
+        return entry if current_url.present? && deep_link?(current_url)
+
+        replacement = choose_replacement_source(
+          current_url: current_url,
+          citations_by_host: citations_by_host,
+          citation_sources: citation_sources
+        )
+
+        return entry if replacement.blank?
+
+        entry.merge(
+          "title" => entry["title"].presence || replacement["title"],
+          "url" => replacement["url"],
+          "publisher" => entry["publisher"].presence || replacement["publisher"]
+        ).compact
+      end
+
+      def choose_replacement_source(current_url:, citations_by_host:, citation_sources:)
+        host = host_for(current_url)
+        same_host = host.present? ? Array(citations_by_host[host]) : []
+
+        same_host.find { |entry| deep_link?(entry["url"]) } ||
+          same_host.first ||
+          citation_sources.find { |entry| deep_link?(entry["url"]) } ||
+          citation_sources.first
+      end
+
+      def extract_cited_sources(response)
+        payload = response_to_hash(response)
+        return [] if payload.blank?
+
+        candidates = []
+        walk_nested(payload) do |node|
+          next unless node.is_a?(Hash)
+
+          source = citation_source_from_hash(node)
+          candidates << source if source.present?
+        end
+
+        dedupe_sources(candidates).first(MAX_SOURCES)
+      end
+
+      def response_to_hash(response)
+        return response if response.is_a?(Hash) || response.is_a?(Array)
+        return response.to_h if response.respond_to?(:to_h)
+
+        nil
+      rescue
+        nil
+      end
+
+      def walk_nested(node, &block)
+        yield node
+
+        case node
+        when Hash
+          node.each_value { |value| walk_nested(value, &block) }
+        when Array
+          node.each { |value| walk_nested(value, &block) }
+        end
+      end
+
+      def citation_source_from_hash(node)
+        url = normalize_url(node["url"] || node[:url] || node["source_url"] || node[:source_url])
+        return nil if url.blank?
+
+        type = (node["type"] || node[:type]).to_s.downcase
+        has_citation_signal = type.include?("citation") || type.include?("result") || type.include?("source")
+
+        has_metadata_signal = %w[
+          title
+          publisher
+          published_at
+          publishedAt
+          site_name
+          source
+          snippet
+        ].any? { |key| node.key?(key) || node.key?(key.to_sym) }
+
+        return nil unless has_citation_signal || has_metadata_signal
+
+        {
+          "title" => (node["title"] || node[:title]).to_s.presence,
+          "url" => url,
+          "publisher" => (node["publisher"] || node[:publisher] || node["site_name"] || node[:site_name]).to_s.presence,
+          "published_at" => (node["published_at"] || node[:published_at] || node["publishedAt"] || node[:publishedAt]).to_s.presence
+        }.compact
+      end
+
+      def dedupe_sources(entries)
+        seen = {}
+        entries.filter_map do |entry|
+          next unless entry.is_a?(Hash)
+
+          url = normalize_url(entry["url"])
+          next if url.blank?
+          next if seen[url]
+
+          seen[url] = true
+          entry.merge("url" => url)
+        end
+      end
+
+      def deep_link?(url)
+        uri = parse_uri(url)
+        return false if uri.blank? || uri.host.blank?
+
+        path = uri.path.to_s
+        path.present? && path != "/" || uri.query.present? || uri.fragment.present?
+      end
+
+      def host_for(url)
+        parse_uri(url)&.host.to_s.downcase.presence
+      end
+
+      def normalize_url(url)
+        str = url.to_s.strip
+        return nil if str.blank?
+
+        uri = parse_uri(str)
+        return nil if uri.blank? || uri.scheme.blank? || uri.host.blank?
+
+        uri.to_s
+      end
+
+      def parse_uri(url)
+        URI.parse(url.to_s)
+      rescue URI::InvalidURIError
+        nil
       end
 
       def track_usage!(response, user_message:, ai_message:, chat:)

@@ -1,137 +1,31 @@
-<section class="container py-4">
-  <h1>AI Usage & Cost</h1>
-  <p class="muted">Company: <strong><%= @company.name %></strong></p>
+<%= turbo_stream_from [@company, :ai_usage] %>
 
-  <div class="card mb-4" style="padding: 16px;">
-    <h2 style="margin-top: 0;">Total</h2>
-    <div style="display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:12px;">
-      <div><strong>Requests</strong><br><%= number_with_delimiter(@totals[:requests_count]) %></div>
-      <div><strong>Input Tokens</strong><br><%= number_with_delimiter(@totals[:input_tokens]) %></div>
-      <div><strong>Output Tokens</strong><br><%= number_with_delimiter(@totals[:output_tokens]) %></div>
-      <div><strong>Total Tokens</strong><br><%= number_with_delimiter(@totals[:total_tokens]) %></div>
-      <div><strong>Total Cost</strong><br><%= number_to_currency(@totals[:total_cost_usd], unit: "$") %></div>
+<section class="container py-4" data-controller="admin-live-status">
+  <div class="admin-ai-usage__header">
+    <div>
+      <h1 style="margin-bottom:4px;">AI Usage & Cost</h1>
+      <p class="muted" style="margin:0;">Company: <strong><%= @company.name %></strong></p>
+    </div>
+    <div id="admin_ai_usage_live_status"
+         data-admin-live-status-target="status"
+         class="admin-live-status is-live">
+      <span class="admin-live-status__dot"
+            aria-hidden="true"></span>
+      <span class="admin-live-status__spinner"
+            aria-hidden="true"
+            data-admin-live-status-target="spinner"></span>
+      <span class="admin-live-status__label"
+            data-admin-live-status-target="label">Live</span>
     </div>
   </div>
 
-  <div class="card mb-4" style="padding: 16px; overflow:auto;">
-    <h2 style="margin-top: 0;">Per Chat</h2>
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Chat</th>
-          <th>Requests</th>
-          <th>Total Tokens</th>
-          <th>Total Cost</th>
-          <th>Last Request</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% if @chat_rows.empty? %>
-          <tr><td colspan="5" class="muted">No tracked AI requests yet.</td></tr>
-        <% else %>
-          <% @chat_rows.each do |row| %>
-            <% chat = row[:chat] %>
-            <tr>
-              <td>
-                <% if chat.present? %>
-                  <%= link_to(chat.title.presence || "Untitled chat", chat_path(chat)) %><br>
-                  <small class="muted">Chat #<%= chat.id %></small>
-                <% else %>
-                  <span class="muted">Deleted chat</span>
-                <% end %>
-              </td>
-              <td><%= number_with_delimiter(row[:requests_count]) %></td>
-              <td><%= number_with_delimiter(row[:total_tokens]) %></td>
-              <td><%= number_to_currency(row[:total_cost_usd], unit: "$") %></td>
-              <td><%= row[:last_requested_at]&.strftime("%Y-%m-%d %H:%M:%S") || "—" %></td>
-            </tr>
-          <% end %>
-        <% end %>
-      </tbody>
-    </table>
+  <div id="admin_ai_usage_report" style="margin-top:14px;">
+    <%= render partial: "admin/ai_usage/report", locals: {
+      company: @company,
+      totals: @totals,
+      requests: @requests,
+      run_rows: @run_rows,
+      chat_rows: @chat_rows
+    } %>
   </div>
-
-  <div class="card mb-4" style="padding: 16px; overflow:auto;">
-    <h2 style="margin-top: 0;">Per Run-Through (User Message)</h2>
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Run</th>
-          <th>Requests</th>
-          <th>Total Tokens</th>
-          <th>Total Cost</th>
-          <th>Output</th>
-          <th>Last Request</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% if @run_rows.empty? %>
-          <tr><td colspan="6" class="muted">No run-through usage available yet.</td></tr>
-        <% else %>
-          <% @run_rows.each do |row| %>
-            <% um = row[:user_message] %>
-            <% ai_message = row[:ai_message] %>
-            <tr>
-              <td>
-                <% if um.present? %>
-                  <strong>UserMessage #<%= um.id %></strong><br>
-                  <small><%= truncate(um.instruction.to_s, length: 90) %></small><br>
-                  <small class="muted">AiMessage #<%= ai_message&.id || "—" %></small>
-                <% else %>
-                  <span class="muted">Deleted run</span>
-                <% end %>
-              </td>
-              <td><%= number_with_delimiter(row[:requests_count]) %></td>
-              <td><%= number_with_delimiter(row[:total_tokens]) %></td>
-              <td><%= number_to_currency(row[:total_cost_usd], unit: "$") %></td>
-              <td><%= row[:output_updated] ? "Updated" : "Not updated" %></td>
-              <td><%= row[:last_requested_at]&.strftime("%Y-%m-%d %H:%M:%S") || "—" %></td>
-            </tr>
-          <% end %>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="card mb-4" style="padding: 16px; overflow:auto;">
-    <h2 style="margin-top: 0;">Per Request (Latest 500)</h2>
-    <table class="table">
-      <thead>
-        <tr>
-          <th>When</th>
-          <th>Kind</th>
-          <th>Model</th>
-          <th>User Msg</th>
-          <th>Input</th>
-          <th>Output</th>
-          <th>Total Tokens</th>
-          <th>Cost</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% if @requests.empty? %>
-          <tr><td colspan="8" class="muted">No request rows yet.</td></tr>
-        <% else %>
-          <% @requests.each do |request| %>
-            <tr>
-              <td><%= request.requested_at&.strftime("%Y-%m-%d %H:%M:%S") || "—" %></td>
-              <td><%= request.request_kind %></td>
-              <td><%= request.model.presence || "—" %></td>
-              <td><%= request.user_message_id || "—" %></td>
-              <td><%= number_with_delimiter(request.input_tokens) %></td>
-              <td><%= number_with_delimiter(request.output_tokens) %></td>
-              <td><%= number_with_delimiter(request.total_tokens) %></td>
-              <td><%= number_to_currency(request.total_cost_usd, unit: "$") %></td>
-            </tr>
-          <% end %>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
-
-  <p class="muted">
-    Cost is estimated from tracked tokens and configured rates.
-    Configure rates with env vars like <code>AI_PRICE_GPT_5_2_INPUT_PER_1M_USD</code> and
-    <code>AI_PRICE_GPT_5_2_OUTPUT_PER_1M_USD</code>.
-  </p>
 </section>

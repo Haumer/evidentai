@@ -13,35 +13,38 @@
   <body>
     <%#= render "shared/navbar" %>
     <%#= render "shared/flashes" %>
+    <% admin_page = controller_path.start_with?("admin/") %>
 
-    <div class="app-shell">
-      <aside class="sidebar">
-        <div class="sidebar-header">
-          <div class="brand">EvidentAI</div>
+    <div class="app-shell <%= "app-shell--admin" if admin_page %>">
+      <% unless admin_page %>
+        <aside class="sidebar">
+          <div class="sidebar-header">
+            <div class="brand">EvidentAI</div>
 
-          <%= button_to "New",
-                chats_path,
-                method: :post,
-                class: "btn btn-primary btn-block" %>
-        </div>
+            <%= button_to "New",
+                  chats_path,
+                  method: :post,
+                  class: "btn btn-primary btn-block" %>
+          </div>
 
-        <div class="sidebar-list">
-          <%= render "chats/sidebar", chats: (@chats || []) %>
-        </div>
+          <div class="sidebar-list">
+            <%= render "chats/sidebar", chats: (@chats || []) %>
+          </div>
 
-        <div class="sidebar-footer">
-          <% if current_user %>
-            <div class="small muted"><%= current_user.email %></div>
-          <% end %>
+          <div class="sidebar-footer">
+            <% if current_user %>
+              <div class="small muted"><%= current_user.email %></div>
+            <% end %>
 
-          <%= button_to "Sign out",
-                destroy_user_session_path,
-                method: :delete,
-                class: "btn btn-link" %>
-        </div>
-      </aside>
+            <%= button_to "Sign out",
+                  destroy_user_session_path,
+                  method: :delete,
+                  class: "btn btn-link" %>
+          </div>
+        </aside>
+      <% end %>
 
-      <main class="main">
+      <main class="main <%= "main--admin" if admin_page %>">
         <%= yield %>
       </main>
     </div>

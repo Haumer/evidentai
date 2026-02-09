@@ -141,3 +141,17 @@
   padding: 7px 11px;
   border-radius: 10px;
 }
+
+/* Admin screens should not inherit the fixed chat-shell viewport constraints. */
+.app-shell.app-shell--admin {
+  display: block;
+  height: auto;
+  min-height: 100vh;
+  overflow: visible;
+}
+
+.main.main--admin {
+  position: static;
+  overflow: auto;
+  padding: 20px 24px 32px;
+}
