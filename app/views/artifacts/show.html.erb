@@ -11,6 +11,17 @@
           Artifact for <%= @chat.title.to_s.strip.presence || "Untitled chat" %>.
           Each trigger queues a fresh run with your selected context window.
         </p>
+        <div class="artifact-triggers__inbound">
+          <% if @chat.inbound_email_address.present? %>
+            Chat email:
+            <code><%= @chat.inbound_email_address %></code>
+          <% elsif @chat.inbound_email_id.present? %>
+            Chat email ID:
+            <code><%= @chat.inbound_email_id %></code>
+          <% else %>
+            Chat email ID is not available in this environment.
+          <% end %>
+        </div>
       </header>
 
       <section class="artifact-triggers__create">

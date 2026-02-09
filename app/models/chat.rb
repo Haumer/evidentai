@@ -41,6 +41,22 @@ class Chat < ApplicationRecord
     self[:context_suggestions_enabled] != false
   end
 
+  def inbound_email_id
+    return nil unless has_attribute?(:inbound_email_token)
+
+    inbound_email_token.to_s.presence
+  end
+
+  def inbound_email_address
+    token = inbound_email_id
+    return nil if token.blank?
+
+    domain = ENV.fetch("CHAT_INBOUND_EMAIL_DOMAIN", "").to_s.strip
+    return token if domain.blank?
+
+    "#{token}@#{domain}"
+  end
+
   private
 
   def ensure_inbound_email_token

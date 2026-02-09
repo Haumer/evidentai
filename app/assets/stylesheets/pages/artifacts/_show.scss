@@ -18,6 +18,23 @@
   font-size: 22px;
 }
 
+.artifact-triggers__inbound {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.artifact-triggers__inbound code {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text);
+  font-size: 12px;
+}
+
 .artifact-triggers__create,
 .artifact-triggers__list {
   margin-top: 18px;

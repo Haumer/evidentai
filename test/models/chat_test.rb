@@ -43,6 +43,31 @@ class ChatTest < ActiveSupport::TestCase
     assert_equal "manual-token", chat.inbound_email_token
   end
 
+  test "inbound_email_address includes configured domain" do
+    skip "inbound_email_token column not present in this DB" unless Chat.column_names.include?("inbound_email_token")
+
+    previous_domain = ENV["CHAT_INBOUND_EMAIL_DOMAIN"]
+    ENV["CHAT_INBOUND_EMAIL_DOMAIN"] = "inbound.example.com"
+
+    chat = build_chat(inbound_email_token: "mail-token")
+    assert_equal "mail-token@inbound.example.com", chat.inbound_email_address
+  ensure
+    ENV["CHAT_INBOUND_EMAIL_DOMAIN"] = previous_domain
+  end
+
+  test "inbound_email_id and address fall back to token when domain missing" do
+    skip "inbound_email_token column not present in this DB" unless Chat.column_names.include?("inbound_email_token")
+
+    previous_domain = ENV["CHAT_INBOUND_EMAIL_DOMAIN"]
+    ENV["CHAT_INBOUND_EMAIL_DOMAIN"] = nil
+
+    chat = build_chat(inbound_email_token: "mail-token")
+    assert_equal "mail-token", chat.inbound_email_id
+    assert_equal "mail-token", chat.inbound_email_address
+  ensure
+    ENV["CHAT_INBOUND_EMAIL_DOMAIN"] = previous_domain
+  end
+
   private
 
   def build_chat(title: nil, title_set_by_user: false, inbound_email_token: nil)
