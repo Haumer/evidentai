@@ -28,6 +28,7 @@ module Ai
           sources_json: extracted[:sources_json]
         )
 
+        persist_artifact_updated_status!
         artifact_broadcaster.replace(text: final_text.to_s, status: "ready")
 
         wait_for_minimum_working_duration(started_at)
@@ -72,6 +73,14 @@ module Ai
           ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000.0).round
         remaining_ms = MIN_OUTPUT_WORKING_MS - elapsed_ms
         sleep(remaining_ms / 1000.0) if remaining_ms.positive?
+      end
+
+      def persist_artifact_updated_status!
+        return unless @user_message.respond_to?(:artifact_updated_at)
+
+        @user_message.update!(artifact_updated_at: Time.current)
+      rescue
+        nil
       end
 
       def client

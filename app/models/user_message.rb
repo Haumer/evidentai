@@ -8,4 +8,8 @@ class UserMessage < ApplicationRecord
   has_one :ai_message, dependent: :destroy, inverse_of: :user_message
 
   validates :instruction, presence: true
+
+  def artifact_updated?
+    respond_to?(:artifact_updated_at) && artifact_updated_at.present?
+  end
 end

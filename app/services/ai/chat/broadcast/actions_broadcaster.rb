@@ -19,7 +19,7 @@ module Ai
             @chat,
             target: actions_target_id,
             partial: PARTIAL,
-            locals: { user_message: @user_message }
+            locals: { user_message: @user_message, latest: true }
           )
         end
 

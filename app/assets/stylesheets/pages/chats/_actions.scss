@@ -1,133 +1,63 @@
 /* app/assets/stylesheets/pages/chats/_actions.scss */
-/* Proposed action cards shown under assistant messages */
-
-/* --- Proposed Actions --- */
+/* Lightweight suggestion rail shown under the latest assistant message. */
 
 .assistant-actions {
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  margin-top: 8px;
 }
 
-.assistant-actions__header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.assistant-actions__title {
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.75);
-}
-
-.assistant-actions__hint {
-  font-size: 12px;
-  color: rgba(0, 0, 0, 0.5);
-}
-
-.assistant-actions__grid {
+.assistant-actions__list {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
+  gap: 8px;
 }
 
-@media (min-width: 880px) {
-  .assistant-actions__grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.action-card {
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 14px;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
-  overflow: hidden;
-}
-
-.action-card__header {
-  padding: 10px 12px;
+.assistant-suggestion {
+  appearance: none;
+  width: 100%;
+  text-align: left;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.86);
+  border-radius: 12px;
+  padding: 12px 13px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  background: rgba(0, 0, 0, 0.02);
+  cursor: pointer;
+  transition: border-color 120ms ease, background-color 120ms ease, transform 120ms ease;
 }
 
-.action-card__title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
+.assistant-suggestion:hover {
+  border-color: rgba(10, 132, 255, 0.36);
+  background: rgba(255, 255, 255, 0.98);
 }
 
-.action-card__badge {
+.assistant-suggestion:active {
+  transform: translateY(1px);
+}
+
+.assistant-suggestion__label {
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgba(22, 22, 24, 0.88);
+}
+
+.assistant-suggestion__cta {
+  flex: 0 0 auto;
   font-size: 11px;
   font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.65);
+  color: rgba(10, 132, 255, 0.92);
 }
 
-.action-card__type {
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.78);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.action-card__meta {
+.assistant-actions__empty {
   font-size: 12px;
-  color: rgba(0, 0, 0, 0.5);
-  white-space: nowrap;
+  color: rgba(0, 0, 0, 0.52);
+  padding: 2px 0;
 }
 
-.action-card__body {
-  padding: 12px;
-}
-
-.action-card__summary {
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.4;
-  color: rgba(0, 0, 0, 0.78);
-  margin-bottom: 6px;
-}
-
-.action-card__list {
-  margin: 8px 0 0;
-  padding-left: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 13px;
-  color: rgba(0, 0, 0, 0.72);
-}
-
-.action-card__details {
+.assistant-actions__footer {
   margin-top: 10px;
 }
 
-.action-card__details-summary {
-  cursor: pointer;
-  font-size: 12px;
-  color: rgba(0, 0, 0, 0.55);
-  user-select: none;
-}
-
-.action-card__payload {
-  margin-top: 8px;
-  padding: 10px;
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  font-size: 12px;
-  line-height: 1.35;
-  overflow-x: auto;
+.assistant-actions__footer form {
+  margin: 0;
 }

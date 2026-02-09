@@ -24,7 +24,7 @@ module Ai
           persist.append_delta!(ai_message: ai_message, delta: delta)
 
           if (accumulated.length - last_broadcast_len) >= BROADCAST_EVERY_N_CHARS
-            broadcaster.stream(accumulated: accumulated)
+            broadcaster.stream(accumulated: Ai::Chat::CleanReplyText.call(accumulated))
             last_broadcast_len = accumulated.length
           end
         end

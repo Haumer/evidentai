@@ -13,4 +13,10 @@ class Chat < ApplicationRecord
   def can_auto_generate_title?
     !title_locked_by_user? && title.blank?
   end
+
+  def context_suggestions_enabled?
+    return true unless has_attribute?(:context_suggestions_enabled)
+
+    self[:context_suggestions_enabled] != false
+  end
 end

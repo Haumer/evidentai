@@ -11,6 +11,7 @@ Rails.application.routes.draw do
       get :edit_title
       get :sidebar_title
       patch :update_title
+      patch :toggle_context_suggestions
     end
   end
 

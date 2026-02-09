@@ -41,13 +41,10 @@ module Ai
         - Avoid referencing UI layout or panes.
         - Prefer short paragraphs or bullets over prose.
 
-        Internal-only metadata (IMPORTANT):
-        - In addition to the visible response, you MAY generate a small internal JSON object
-          containing non-user-facing metadata such as:
-            - suggested_title (string)
-            - inferred_intent (short string)
-        - This metadata must be emitted via a separate, non-streamed channel
-          and must never appear in the visible chat text.
+        Internal metadata boundary (IMPORTANT):
+        - Never include internal metadata in this response.
+        - Never append JSON objects (for example suggested_title, inferred_intent, control flags).
+        - Metadata is extracted in a separate call; this chat text must remain user-visible prose only.
 
         The visible response should feel like a calm, competent human moving the task forward.
       SYSTEM

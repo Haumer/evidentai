@@ -55,7 +55,7 @@ module Ai
 
       def extract_assistant_text(ai_message)
         content = ai_message.content.is_a?(Hash) ? ai_message.content : {}
-        content.fetch("text", "").to_s
+        Ai::Chat::CleanReplyText.call(content.fetch("text", "").to_s)
       end
 
       def request_actions_json(instruction:, assistant_text:, context:)
@@ -123,6 +123,8 @@ module Ai
 
           actions.each do |a|
             type = a.fetch("type")
+            next if type == "suggest_additional_context" && !context_suggestions_enabled?
+
             payload = a.fetch("payload", {})
             metadata = a.fetch("metadata", {})
 
@@ -180,6 +182,21 @@ module Ai
         normalized.match?(
           /\A(?:thanks|thank you|thx|ok|okay|great|awesome|nice|perfect|cool|sounds good|got it|all good|that works|done)\z/
         )
+      end
+
+      def context_suggestions_enabled?
+        chat = @user_message.respond_to?(:chat) ? @user_message.chat : nil
+        return true unless chat
+
+        if chat.respond_to?(:context_suggestions_enabled?)
+          chat.context_suggestions_enabled?
+        elsif chat.respond_to?(:context_suggestions_enabled)
+          chat.context_suggestions_enabled != false
+        else
+          true
+        end
+      rescue
+        true
       end
     end
   end
