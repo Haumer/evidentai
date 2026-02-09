@@ -3,7 +3,7 @@
   # Locals:
   # - text: HTML string for srcdoc
   # - artifact: optional (not required for rendering)
-  src = text.to_s
+  src = Ai::Links::Harden.call(text.to_s, target_blank: true)
 %>
 
 <%= turbo_frame_tag "artifact_iframe" do %>

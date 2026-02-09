@@ -46,7 +46,7 @@ module Ai
         extracted = parse_json_array(raw)
 
         persist_actions!(ai_message: ai_message, extracted_actions: extracted)
-        store_raw!(ai_message: ai_message, raw: raw, extracted: extracted)
+        store_raw!(ai_message: ai_message, raw: raw, extracted: extracted) if persist_raw?
 
         extracted
       end
@@ -170,6 +170,10 @@ module Ai
 
       def openai_client
         @openai_client ||= OpenAI::Client.new(api_key: ENV.fetch("OPENAI_API_KEY"))
+      end
+
+      def persist_raw?
+        ENV["AI_STORE_ACTIONS_RAW"].to_s == "1"
       end
 
       def acknowledgement_only?(instruction)

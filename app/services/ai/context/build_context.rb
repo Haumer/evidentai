@@ -12,10 +12,10 @@
 module Ai
   module Context
     class BuildContext
-      DEFAULT_TURNS = 5
-      DEFAULT_MAX_CHARS = 8_000
-      DEFAULT_USER_CHARS = 400
-      DEFAULT_ASSISTANT_CHARS = 600
+      DEFAULT_TURNS = 3
+      DEFAULT_MAX_CHARS = 3_000
+      DEFAULT_USER_CHARS = 220
+      DEFAULT_ASSISTANT_CHARS = 280
 
       def initialize(chat:, exclude_user_message_id: nil, turns: DEFAULT_TURNS, max_chars: DEFAULT_MAX_CHARS)
         @chat = chat

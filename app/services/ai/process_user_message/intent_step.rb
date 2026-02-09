@@ -9,7 +9,7 @@ module Ai
         @context.meta = Ai::Intent::Extract.new(
           user_message: @context.user_message,
           ai_message: @context.ai_message,
-          context: @context.context_text,
+          context: @context.full_chat_history_text,
           model: @context.model,
           provider: @context.provider
         ).call

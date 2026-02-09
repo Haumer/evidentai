@@ -11,6 +11,7 @@ module Ai
       def call
         persist.mark_running!
         ai_message = persist.ensure_ai_message!
+        assumed_defaults = assumed_defaults_for_confirmation
 
         accumulated = +""
         last_broadcast_len = 0
@@ -27,14 +28,20 @@ module Ai
             broadcaster.stream(
               accumulated: Ai::Chat::ConfirmCurrentRequest.call(
                 text: accumulated,
-                instruction: @user_message.instruction.to_s
+                instruction: @user_message.instruction.to_s,
+                assumed_defaults: assumed_defaults
               )
             )
             last_broadcast_len = accumulated.length
           end
         end
 
-        persist.finalize!(ai_message: ai_message, text: final_text, model: @context.model)
+        persist.finalize!(
+          ai_message: ai_message,
+          text: final_text,
+          model: @context.model,
+          assumed_defaults: assumed_defaults
+        )
         broadcaster.final
 
         @context.ai_message = ai_message
@@ -64,8 +71,16 @@ module Ai
       def composed_messages
         @composed_messages ||= Ai::Chat::ComposeMessages.new(
           user_message: @user_message,
-          context: @context.context_text
+          # Keep pass-1 latency low: chat confirmation should not depend on large history.
+          context: nil
         ).call
+      end
+
+      def assumed_defaults_for_confirmation
+        @assumed_defaults_for_confirmation ||= Ai::Chat::AssumedDefaults.call(
+          instruction: @user_message.instruction.to_s,
+          chat_history_text: @context.full_chat_history_text
+        )
       end
     end
   end

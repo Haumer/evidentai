@@ -27,4 +27,14 @@ class AiChatConfirmCurrentRequestTest < ActiveSupport::TestCase
 
     assert_equal "Sure, working on it.", out
   end
+
+  test "adds assumed defaults to the confirmation sentence" do
+    out = Ai::Chat::ConfirmCurrentRequest.call(
+      text: "Understood, I will compile golf locations around Vienna.",
+      instruction: "golf locations around vienna",
+      assumed_defaults: ["a 60-minute travel radius"]
+    )
+
+    assert_equal "Understood, I will compile golf locations around Vienna (assuming a 60-minute travel radius).", out
+  end
 end

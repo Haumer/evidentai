@@ -67,7 +67,7 @@ module MarkdownHelper
   end
 
   def sanitize_markdown_html(html)
-    sanitize(
+    sanitized = sanitize(
       html,
       tags: %w[
         p br strong em a ul ol li blockquote pre code h1 h2 h3 h4 h5 h6 hr
@@ -75,5 +75,7 @@ module MarkdownHelper
       ],
       attributes: %w[href title rel target]
     )
+
+    Ai::Links::Harden.call(sanitized, target_blank: true).html_safe
   end
 end

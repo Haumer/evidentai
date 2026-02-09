@@ -4,7 +4,7 @@
 #
 # Responsibility:
 # - Given the current artifact + the user's latest request,
-#   return ONLY the updated artifact content (markdown).
+#   return ONLY the updated artifact content (HTML).
 #
 # This is NOT a "prompt" in the application sense.
 # It is a deterministic artifact update instruction set.

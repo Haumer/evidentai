@@ -54,7 +54,7 @@ module Ai
             @user_message,
             current_artifact_text: previous_text,
             available_data: data_resolution[:available_data],
-            chat_history: @context.full_user_history_text
+            chat_history: @context.full_chat_history_text
           ),
           model: @context.model
         )

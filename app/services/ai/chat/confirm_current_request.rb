@@ -8,13 +8,14 @@ module Ai
     class ConfirmCurrentRequest
       MAX_INSTRUCTION_CHARS = 120
 
-      def self.call(text:, instruction:)
-        new(text: text, instruction: instruction).call
+      def self.call(text:, instruction:, assumed_defaults: nil)
+        new(text: text, instruction: instruction, assumed_defaults: assumed_defaults).call
       end
 
-      def initialize(text:, instruction:)
+      def initialize(text:, instruction:, assumed_defaults:)
         @text = text.to_s
         @instruction = instruction.to_s
+        @assumed_defaults = Array(assumed_defaults).map(&:to_s).map(&:strip).reject(&:blank?).uniq
       end
 
       def call
@@ -24,7 +25,7 @@ module Ai
         return fallback_confirmation if candidate.blank?
         return fallback_confirmation if candidate.include?("?")
 
-        ensure_period(candidate)
+        apply_assumed_defaults(ensure_period(candidate))
       rescue
         fallback_confirmation
       end
@@ -52,7 +53,7 @@ module Ai
         end
 
         raw = raw.sub(/[.?!]+\z/, "")
-        "Understood, I will work on #{raw}."
+        apply_assumed_defaults("Understood, I will work on #{raw}.")
       end
 
       def ensure_period(text)
@@ -60,6 +61,15 @@ module Ai
         text = text.sub(/[?!]+\z/, ".")
         text = "#{text}." unless text.end_with?(".")
         text
+      end
+
+      def apply_assumed_defaults(text)
+        return text if @assumed_defaults.empty?
+        return text if text.to_s.match?(/\bassum/i)
+
+        suffix = @assumed_defaults.join(", ")
+        base = text.to_s.sub(/\.\z/, "")
+        "#{base} (assuming #{suffix})."
       end
     end
   end

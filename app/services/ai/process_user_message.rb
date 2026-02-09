@@ -13,9 +13,9 @@ module Ai
 
     def call
       ChatReplyStep.new(context: @run_context).call
+      ExtractActionsJob.perform_later(@run_context.user_message.id)
       IntentStep.new(context: @run_context).call
       ArtifactStep.new(context: @run_context).call if @run_context.should_generate_artifact?
-      ActionsStep.new(context: @run_context).call
     end
   end
 end

@@ -92,6 +92,60 @@ class AiProcessUserMessageContextTest < ActiveSupport::TestCase
     assert context.should_generate_artifact?
   end
 
+  test "should_generate_artifact? is true for concise clarification even without a prior assistant question" do
+    history = [
+      FakeHistoryMessage.new(1, "Golf locations around Vienna", FakeAiMessage.new("Understood, I will work on golf locations around Vienna."))
+    ]
+    chat = FakeChat.new(FakeUserMessagesRelation.new(history))
+    user_message = FakeUserMessage.new(chat, 2, "austria")
+
+    context = Ai::ProcessUserMessage::Context.new(
+      user_message: user_message,
+      context_text: "ctx",
+      model: "gpt-5.2",
+      provider: "openai"
+    )
+    context.meta = { should_generate_artifact: false }
+
+    assert context.should_generate_artifact?
+  end
+
+  test "should_generate_artifact? is true for longer follow-up when an artifact request already exists" do
+    history = [
+      FakeHistoryMessage.new(1, "Golf locations around Vienna", FakeAiMessage.new("Understood, I will work on golf locations around Vienna."))
+    ]
+    chat = FakeChat.new(FakeUserMessagesRelation.new(history))
+    user_message = FakeUserMessage.new(chat, 2, "please prioritize public courses and include pricing")
+
+    context = Ai::ProcessUserMessage::Context.new(
+      user_message: user_message,
+      context_text: "ctx",
+      model: "gpt-5.2",
+      provider: "openai"
+    )
+    context.meta = { should_generate_artifact: false }
+
+    assert context.should_generate_artifact?
+  end
+
+  test "should_generate_artifact? stays false for courtesy-only follow-up" do
+    history = [
+      FakeHistoryMessage.new(1, "Golf locations around Vienna", FakeAiMessage.new("Understood, I will work on golf locations around Vienna."))
+    ]
+    chat = FakeChat.new(FakeUserMessagesRelation.new(history))
+    user_message = FakeUserMessage.new(chat, 2, "thanks")
+
+    context = Ai::ProcessUserMessage::Context.new(
+      user_message: user_message,
+      context_text: "ctx",
+      model: "gpt-5.2",
+      provider: "openai"
+    )
+    context.meta = { should_generate_artifact: false }
+
+    assert_not context.should_generate_artifact?
+  end
+
   test "should_generate_artifact? stays false for short follow-up on non-artifact chat" do
     history = [
       FakeHistoryMessage.new(1, "hi", FakeAiMessage.new("Where are you based?"))

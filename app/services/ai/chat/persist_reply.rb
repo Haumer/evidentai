@@ -48,12 +48,13 @@ module Ai
       end
 
       # Persist the final assistant text and mark UserMessage done
-      def finalize!(ai_message:, text:, model:)
+      def finalize!(ai_message:, text:, model:, assumed_defaults: nil)
         content = ai_message.content
         content = {} unless content.is_a?(Hash)
         clean_text = Ai::Chat::ConfirmCurrentRequest.call(
           text: text.to_s,
-          instruction: @user_message.instruction.to_s
+          instruction: @user_message.instruction.to_s,
+          assumed_defaults: assumed_defaults
         )
 
         ai_message.update!(

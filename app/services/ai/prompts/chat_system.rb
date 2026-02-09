@@ -28,6 +28,7 @@ module Ai
 
         Defaults and momentum:
         - Acknowledge the request and stop. No extra prose.
+        - If you assume a sensible default to proceed, mention it briefly in the same sentence.
 
         Style guidelines:
         - Be concise, neutral, and practical.

@@ -34,6 +34,9 @@ module Ai
           IMPORTANT: if the prior turn asked for missing information to complete an artifact request
           and the current user message supplies that missing value (e.g. location, date range, audience),
           set should_generate_artifact to true.
+          Prefer true when a reasonable default can be assumed (for example defaulting a travel radius).
+          Use false only when a truly blocking input is still missing and cannot be safely defaulted
+          (for example weather forecast with no location at all).
 
         - needs_sources:
           true if the user is asking for factual claims that require citations/sourcing OR explicitly requests sources.
