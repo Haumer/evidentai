@@ -31,12 +31,12 @@ class AiRequestUsage < ApplicationRecord
     broadcast_report_refresh
 
     Turbo::StreamsChannel.broadcast_remove_to(
-      [company, :ai_usage],
+      [:admin, :ai_usage],
       target: "admin_ai_usage_live_feed_empty"
     )
 
     Turbo::StreamsChannel.broadcast_prepend_to(
-      [company, :ai_usage],
+      [:admin, :ai_usage],
       target: "admin_ai_usage_live_feed_items",
       partial: "admin/ai_usage/live_request",
       locals: { usage: self }
@@ -50,7 +50,7 @@ class AiRequestUsage < ApplicationRecord
     broadcast_report_refresh
 
     Turbo::StreamsChannel.broadcast_replace_to(
-      [company, :ai_usage],
+      [:admin, :ai_usage],
       target: ActionView::RecordIdentifier.dom_id(self, :live),
       partial: "admin/ai_usage/live_request",
       locals: { usage: self }
@@ -61,14 +61,13 @@ class AiRequestUsage < ApplicationRecord
   end
 
   def broadcast_report_refresh
-    data = Ai::Usage::ReportData.new(company: company).call
+    data = Ai::Usage::ReportData.new.call
 
     Turbo::StreamsChannel.broadcast_update_to(
-      [company, :ai_usage],
+      [:admin, :ai_usage],
       target: "admin_ai_usage_report",
       partial: "admin/ai_usage/report",
       locals: {
-        company: company,
         totals: data[:totals],
         requests: data[:requests],
         kind_rows: data[:kind_rows],

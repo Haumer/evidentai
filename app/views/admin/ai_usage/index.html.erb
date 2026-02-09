@@ -1,10 +1,10 @@
-<%= turbo_stream_from [@company, :ai_usage] %>
+<%= turbo_stream_from [:admin, :ai_usage] %>
 
 <section class="container py-4" data-controller="admin-live-status">
   <div class="admin-ai-usage__header">
     <div>
       <h1 style="margin-bottom:4px;">AI Usage & Cost</h1>
-      <p class="muted" style="margin:0;">Company: <strong><%= @company.name %></strong></p>
+      <p class="muted" style="margin:0;">Scope: <strong>All companies, all users</strong></p>
     </div>
     <div id="admin_ai_usage_live_status"
          data-admin-live-status-target="status"
@@ -22,7 +22,6 @@
   <div class="admin-ai-usage__content" style="margin-top:14px;">
     <div id="admin_ai_usage_report">
       <%= render partial: "admin/ai_usage/report", locals: {
-        company: @company,
         totals: @totals,
         requests: @requests,
         kind_rows: @kind_rows,

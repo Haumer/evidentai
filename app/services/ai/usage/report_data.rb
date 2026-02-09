@@ -1,14 +1,14 @@
 module Ai
   module Usage
     class ReportData
-      def initialize(company:, request_limit: 500, run_limit: 200)
+      def initialize(company: nil, request_limit: 500, run_limit: 200)
         @company = company
         @request_limit = request_limit.to_i
         @run_limit = run_limit.to_i
       end
 
       def call
-        base = ::AiRequestUsage.where(company_id: @company.id)
+        base = base_scope
 
         {
           totals: aggregate(base),
@@ -20,6 +20,12 @@ module Ai
       end
 
       private
+
+      def base_scope
+        return ::AiRequestUsage.all if @company.blank?
+
+        ::AiRequestUsage.where(company_id: @company.id)
+      end
 
       def build_kind_rows(base)
         rows = base.group(:request_kind)
