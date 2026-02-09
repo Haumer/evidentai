@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
-  devise_for :users
+  devise_for :users, controllers: { registrations: "users/registrations" }
 
   # ---- Core app ----
   resources :chats, only: [:index, :show, :create, :update, :destroy] do

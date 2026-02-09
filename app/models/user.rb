@@ -3,7 +3,9 @@ class User < ApplicationRecord
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
-  
+
+  attr_accessor :company_name
+
   has_many :memberships, dependent: :destroy
   has_many :companies, through: :memberships
 

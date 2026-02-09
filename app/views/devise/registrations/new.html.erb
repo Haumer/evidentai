@@ -1,25 +1,44 @@
-<h2>Sign up</h2>
+<section class="auth-page">
+  <div class="auth-card">
+    <p class="auth-card__eyebrow">EvidentAI</p>
+    <h1 class="auth-card__title">Create your workspace</h1>
+    <p class="auth-card__subtitle">Set up your company first, then your user account.</p>
 
-<%= simple_form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
-  <%= f.error_notification %>
+    <% flash.each do |key, value| %>
+      <div class="auth-flash auth-flash--<%= key %>"><%= value %></div>
+    <% end %>
 
-  <div class="form-inputs">
-    <%= f.input :email,
-                required: true,
-                autofocus: true,
-                input_html: { autocomplete: "email" }%>
-    <%= f.input :password,
-                required: true,
-                hint: ("#{@minimum_password_length} characters minimum" if @minimum_password_length),
-                input_html: { autocomplete: "new-password" } %>
-    <%= f.input :password_confirmation,
-                required: true,
-                input_html: { autocomplete: "new-password" } %>
+    <%= simple_form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "auth-form" }) do |f| %>
+      <%= f.error_notification %>
+
+      <div class="form-inputs">
+        <%= f.input :company_name,
+                    label: "Company name",
+                    required: true,
+                    autofocus: true,
+                    hint: "Your first company and owner membership will be created automatically.",
+                    input_html: { autocomplete: "organization" } %>
+        <%= f.input :email,
+                    label: "Work email",
+                    required: true,
+                    input_html: { autocomplete: "email" } %>
+        <%= f.input :password,
+                    required: true,
+                    hint: ("#{@minimum_password_length} characters minimum" if @minimum_password_length),
+                    input_html: { autocomplete: "new-password" } %>
+        <%= f.input :password_confirmation,
+                    required: true,
+                    input_html: { autocomplete: "new-password" } %>
+      </div>
+
+      <div class="form-actions">
+        <%= f.button :submit, "Create account", class: "btn btn-primary btn-block" %>
+      </div>
+    <% end %>
+
+    <div class="auth-links">
+      <span>Already have an account?</span>
+      <%= link_to "Log in", new_session_path(resource_name) %>
+    </div>
   </div>
-
-  <div class="form-actions">
-    <%= f.button :submit, "Sign up" %>
-  </div>
-<% end %>
-
-<%= render "devise/shared/links" %>
+</section>

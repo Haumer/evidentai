@@ -14,9 +14,10 @@
     <%#= render "shared/navbar" %>
     <%#= render "shared/flashes" %>
     <% admin_page = controller_path.start_with?("admin/") %>
+    <% auth_page = devise_controller? %>
 
-    <div class="app-shell <%= "app-shell--admin" if admin_page %>">
-      <% unless admin_page %>
+    <div class="app-shell <%= "app-shell--admin" if admin_page %> <%= "app-shell--auth" if auth_page %>">
+      <% unless admin_page || auth_page %>
         <aside class="sidebar">
           <div class="sidebar-header">
             <div class="brand">EvidentAI</div>
@@ -44,7 +45,7 @@
         </aside>
       <% end %>
 
-      <main class="main <%= "main--admin" if admin_page %>">
+      <main class="main <%= "main--admin" if admin_page %> <%= "main--auth" if auth_page %>">
         <%= yield %>
       </main>
     </div>
