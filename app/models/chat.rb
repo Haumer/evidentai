@@ -24,6 +24,15 @@ class Chat < ApplicationRecord
     !title_locked_by_user? && title_effectively_untitled?
   end
 
+  def untouched_for_new_chat?
+    return false if title_set_by_user?
+    return false unless title_effectively_untitled?
+    return false if user_messages.exists?
+    return false if artifacts.exists?
+
+    true
+  end
+
   def context_suggestions_enabled?
     return true unless has_attribute?(:context_suggestions_enabled)
 

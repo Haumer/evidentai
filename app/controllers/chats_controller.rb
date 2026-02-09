@@ -152,6 +152,12 @@ class ChatsController < ApplicationController
 
   # POST /chats
   def create
+    blocking_chat = blocking_untouched_chat
+    if blocking_chat.present?
+      redirect_to chat_path(blocking_chat), alert: "Finish or rename your current empty chat before creating a new one."
+      return
+    end
+
     # Sidebar “New” button hits this. No form.
     chat = Chat.create!(company: @company, created_by: current_user)
     redirect_to chat_path(chat)
@@ -249,5 +255,17 @@ class ChatsController < ApplicationController
 
   def company_chat_ids
     Chat.where(company: @company).pluck(:id)
+  end
+
+  def blocking_untouched_chat
+    if params[:current_chat_id].present?
+      current_chat = Chat.where(company: @company).find_by(id: params[:current_chat_id])
+      return current_chat if current_chat&.untouched_for_new_chat?
+    end
+
+    latest_chat = Chat.where(company: @company).order(updated_at: :desc).first
+    return nil unless latest_chat&.untouched_for_new_chat?
+
+    latest_chat
   end
 end
