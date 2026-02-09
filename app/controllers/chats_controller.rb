@@ -39,16 +39,29 @@ class ChatsController < ApplicationController
         artifacts_scope.first
       end
 
-    artifact_text = @artifact.present? ? artifact_text_for(@artifact) : ""
+    if @artifact.present?
+      requested_text = artifact_text_for(@artifact)
+      if requested_text.blank?
+        fallback_artifact = artifacts_scope.detect { |candidate| artifact_text_for(candidate).present? }
+        @artifact = fallback_artifact if fallback_artifact.present?
+      end
+    end
+
+    artifact_text = @artifact.present? ? artifact_text_for(@artifact) : latest_preview_text
     status = artifact_text.present? ? "ready" : "waiting"
 
-    render partial: "chats/artifact_preview",
-           locals: {
-             text: artifact_text,
-             status: status,
-             chat: @chat,
-             artifact: @artifact
-           }
+    locals = {
+      text: artifact_text,
+      status: status,
+      chat: @chat,
+      artifact: @artifact
+    }
+
+    if turbo_frame_request?
+      render partial: "chats/artifact_preview_frame", locals: locals
+    else
+      render partial: "chats/artifact_preview", locals: locals
+    end
   end
 
   # GET /chats/new

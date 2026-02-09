@@ -10,6 +10,7 @@ import { Controller } from "@hotwired/stimulus"
 //   do NOT allow submits and do NOT re-enable the submit button.
 export default class extends Controller {
   static targets = ["input"]
+  static values = { chatId: Number }
 
   connect() {
     this.sending = false
@@ -55,6 +56,7 @@ export default class extends Controller {
 
   onSubmitStart() {
     this.sending = true
+    this.markPendingWindow()
     this.disableControls()
   }
 
@@ -103,5 +105,22 @@ export default class extends Controller {
       if (busy) return
       el.disabled = false
     })
+  }
+
+  markPendingWindow() {
+    // Give recover controller a short window to auto-resync if streams are
+    // missed while the tab is backgrounded.
+    const expiresAt = Date.now() + (3 * 60 * 1000)
+
+    try {
+      sessionStorage.setItem(this.pendingKey(), String(expiresAt))
+    } catch (_) {
+      // no-op
+    }
+  }
+
+  pendingKey() {
+    const chatId = this.hasChatIdValue ? String(this.chatIdValue) : "global"
+    return `evidentai:chat-pending:${chatId}`
   }
 }

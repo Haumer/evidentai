@@ -3,9 +3,7 @@
 <%
   status ||= "waiting"
   status = status.to_s
-  is_working = (status == "working")
   has_text = text.to_s.strip.present?
-  status_label = is_working ? "Updating" : (has_text ? "Output updated" : "Waiting")
 
   chat =
     local_assigns[:chat] ||
@@ -71,27 +69,29 @@
   </div>
 
   <div class="artifact-header-right">
-    <div class="artifact-version-nav" aria-label="Artifact versions">
-      <% if older_artifact.present? && chat.present? %>
-        <%= link_to "‹",
-                    artifact_preview_chat_path(chat, artifact_id: older_artifact.id),
-                    class: "artifact-version-arrow",
-                    data: { turbo_frame: "artifact_content" } %>
-      <% else %>
-        <span class="artifact-version-arrow is-disabled">‹</span>
-      <% end %>
+    <% if total_versions.positive? %>
+      <div class="artifact-version-nav" aria-label="Artifact versions">
+        <% if older_artifact.present? && chat.present? %>
+          <%= link_to "‹",
+                      artifact_preview_chat_path(chat, artifact_id: older_artifact.id),
+                      class: "artifact-version-arrow",
+                      data: { turbo_frame: "artifact_content" } %>
+        <% else %>
+          <span class="artifact-version-arrow is-disabled">‹</span>
+        <% end %>
 
-      <span class="artifact-version-count"><%= "#{current_number}/#{total_versions}" %></span>
+        <span class="artifact-version-count"><%= "#{current_number}/#{total_versions}" %></span>
 
-      <% if newer_artifact.present? && chat.present? %>
-        <%= link_to "›",
-                    artifact_preview_chat_path(chat, artifact_id: newer_artifact.id),
-                    class: "artifact-version-arrow",
-                    data: { turbo_frame: "artifact_content" } %>
-      <% else %>
-        <span class="artifact-version-arrow is-disabled">›</span>
-      <% end %>
-    </div>
+        <% if newer_artifact.present? && chat.present? %>
+          <%= link_to "›",
+                      artifact_preview_chat_path(chat, artifact_id: newer_artifact.id),
+                      class: "artifact-version-arrow",
+                      data: { turbo_frame: "artifact_content" } %>
+        <% else %>
+          <span class="artifact-version-arrow is-disabled">›</span>
+        <% end %>
+      </div>
+    <% end %>
 
     <% if dataset_locked %>
       <span class="pill is-muted" title="This dataset has been edited. AI updates will not overwrite it.">
@@ -99,14 +99,7 @@
       </span>
     <% end %>
 
-    <span class="pill <%= "is-live" if has_text %> <%= "is-working" if is_working %>">
-      <% if is_working || !has_text %>
-        <span class="pill-dot"></span>
-      <% else %>
-        <span class="pill-check" aria-hidden="true">✓</span>
-      <% end %>
-      <%= status_label %>
-    </span>
+    <%= render partial: "chats/artifact_status_pill", locals: { status: status, has_text: has_text } %>
   </div>
 </header>
 

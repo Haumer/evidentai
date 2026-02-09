@@ -2,7 +2,7 @@
 
 <%= turbo_stream_from @chat %>
 
-<div class="chat-layout">
+<div class="chat-layout" data-controller="stream-recover" data-stream-recover-chat-id-value="<%= @chat.id %>">
 
   <!-- LEFT: Chat -->
   <section class="chat-pane">
@@ -41,7 +41,8 @@
                 class: "composer-form",
                 data: {
                   controller: "submit-on-enter",
-                  action: "keydown->submit-on-enter#keydown"
+                  action: "keydown->submit-on-enter#keydown",
+                  submit_on_enter_chat_id_value: @chat.id
                 } do |f| %>
 
             <div class="composer-input">

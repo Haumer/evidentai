@@ -1,0 +1,8 @@
+<%= turbo_frame_tag "artifact_content" do %>
+  <%= render partial: "chats/artifact_preview", locals: {
+    text: text,
+    status: status,
+    chat: chat,
+    artifact: artifact
+  } %>
+<% end %>

@@ -1,0 +1,15 @@
+<%
+  status = (local_assigns[:status].presence || "waiting").to_s
+  has_text = (local_assigns[:has_text] == true)
+  is_working = (status == "working")
+  status_label = is_working ? "Updating" : (has_text ? "Output updated" : "Waiting")
+%>
+
+<span id="artifact_status_pill" class="pill <%= "is-live" if has_text %> <%= "is-working" if is_working %>">
+  <% if is_working || !has_text %>
+    <span class="pill-dot"></span>
+  <% else %>
+    <span class="pill-check" aria-hidden="true">✓</span>
+  <% end %>
+  <%= status_label %>
+</span>

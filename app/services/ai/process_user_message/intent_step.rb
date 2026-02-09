@@ -49,7 +49,7 @@ module Ai
       def normalized_title_from_meta
         title = @context.meta.is_a?(Hash) ? @context.meta[:suggested_title].to_s.strip : ""
         return "" if title.blank?
-        return "" if Chat::UNTITLED_TITLES.include?(title.downcase)
+        return "" if ::Chat::UNTITLED_TITLES.include?(title.downcase)
 
         title
       end
