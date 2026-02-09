@@ -14,6 +14,7 @@ export default class extends Controller {
 
   connect() {
     this.sending = false
+    this.firstSubmitTransitionChat = null
 
     this._onKeydown = (e) => this.keydown(e)
     this._onSubmitStart = () => this.onSubmitStart()
@@ -55,12 +56,16 @@ export default class extends Controller {
   }
 
   onSubmitStart() {
+    this.startFirstSubmitTransition()
     this.sending = true
     this.markPendingWindow()
     this.disableControls()
   }
 
   onSubmitEnd(e) {
+    const submitSucceeded = !!e?.detail?.success
+    this.finishFirstSubmitTransition({ submitSucceeded })
+
     // Always unlock local "sending" state, even on error
     this.sending = false
 
@@ -122,5 +127,33 @@ export default class extends Controller {
   pendingKey() {
     const chatId = this.hasChatIdValue ? String(this.chatIdValue) : "global"
     return `evidentai:chat-pending:${chatId}`
+  }
+
+  startFirstSubmitTransition() {
+    if (!this.hasInputTarget) return
+    if ((this.inputTarget.value || "").trim().length === 0) return
+
+    const chat = this.element.closest(".chat")
+    if (!chat || !chat.classList.contains("is-empty")) return
+
+    chat.classList.add("is-starting")
+    this.firstSubmitTransitionChat = chat
+  }
+
+  finishFirstSubmitTransition({ submitSucceeded }) {
+    const chat = this.firstSubmitTransitionChat
+    if (!chat) return
+
+    if (submitSucceeded) {
+      chat.classList.remove("is-starting")
+      chat.classList.remove("is-empty")
+
+      const emptyState = chat.querySelector(".empty-state")
+      if (emptyState) emptyState.remove()
+    } else {
+      chat.classList.remove("is-starting")
+    }
+
+    this.firstSubmitTransitionChat = null
   }
 }
