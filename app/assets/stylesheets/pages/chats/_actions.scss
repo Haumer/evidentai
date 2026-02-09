@@ -2,12 +2,24 @@
 /* Lightweight suggestion rail shown under the latest assistant message. */
 
 .assistant-actions {
-  margin-top: 8px;
+  margin-top: 4px;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(246, 247, 250, 0.78);
+  overflow: hidden;
+}
+
+.assistant-actions__content {
+  max-height: 260px;
+  opacity: 1;
+  transform: translateY(0);
+  transition: max-height 220ms ease, opacity 180ms ease, transform 180ms ease;
 }
 
 .assistant-actions__list {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .assistant-suggestion {
@@ -15,9 +27,9 @@
   width: 100%;
   text-align: left;
   border: 1px solid rgba(0, 0, 0, 0.1);
-  background: rgba(255, 255, 255, 0.86);
+  background: rgba(255, 255, 255, 0.92);
   border-radius: 12px;
-  padding: 12px 13px;
+  padding: 10px 11px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -54,10 +66,32 @@
   padding: 2px 0;
 }
 
+.assistant-actions__collapsed {
+  display: none;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.56);
+  padding: 2px 0;
+}
+
 .assistant-actions__footer {
-  margin-top: 10px;
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .assistant-actions__footer form {
   margin: 0;
+}
+
+.assistant-actions.is-collapsed .assistant-actions__content {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+}
+
+.assistant-actions.is-collapsed .assistant-actions__collapsed {
+  display: block;
 }

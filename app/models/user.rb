@@ -6,4 +6,10 @@ class User < ApplicationRecord
   
   has_many :memberships, dependent: :destroy
   has_many :companies, through: :memberships
+
+  def context_suggestions_enabled?
+    return true unless has_attribute?(:context_suggestions_enabled)
+
+    self[:context_suggestions_enabled] != false
+  end
 end

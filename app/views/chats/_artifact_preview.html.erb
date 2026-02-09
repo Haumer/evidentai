@@ -100,7 +100,11 @@
     <% end %>
 
     <span class="pill <%= "is-live" if has_text %> <%= "is-working" if is_working %>">
-      <span class="pill-dot"></span>
+      <% if is_working || !has_text %>
+        <span class="pill-dot"></span>
+      <% else %>
+        <span class="pill-check" aria-hidden="true">✓</span>
+      <% end %>
       <%= status_label %>
     </span>
   </div>

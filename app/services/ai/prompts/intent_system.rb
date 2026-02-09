@@ -43,7 +43,8 @@ module Ai
           or anything that may have changed recently.
 
         - suggested_title:
-          short, calm, human title for the artifact. null if should_generate_artifact is false.
+          short, calm, human chat title. Provide this whenever possible, especially on the first user turn.
+          Use null only when there is not enough signal for any meaningful title.
 
         - flags:
           keep empty {} unless you have a strong reason to set future-proof flags (e.g. {"format":"report"}).

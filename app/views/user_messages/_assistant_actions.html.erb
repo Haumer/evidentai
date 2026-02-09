@@ -5,7 +5,7 @@
   ai_message = user_message.ai_message
   chat = user_message.chat
 
-  context_enabled =
+  chat_enabled =
     if chat.respond_to?(:context_suggestions_enabled?)
       chat.context_suggestions_enabled?
     elsif chat.respond_to?(:context_suggestions_enabled)
@@ -14,6 +14,16 @@
       true
     end
 
+  account_enabled =
+    if current_user.respond_to?(:context_suggestions_enabled?)
+      current_user.context_suggestions_enabled?
+    elsif current_user.respond_to?(:context_suggestions_enabled)
+      current_user.context_suggestions_enabled != false
+    else
+      true
+    end
+
+  context_enabled = chat_enabled && account_enabled
   latest = local_assigns.key?(:latest) ? !!local_assigns[:latest] : true
   actions = ai_message&.proposed_actions&.proposed&.order(created_at: :asc).to_a
   actions ||= []
@@ -38,36 +48,111 @@
       []
     end
 
-  suggestions = suggestions.map { |s| s.to_s.squish }.reject(&:blank?).uniq.first(2)
+  normalize_suggestion = lambda do |value|
+    s = value.to_s.tr("“”", "\"").tr("‘’", "'").squish
+    s = s.sub(/\A["']+/, "").sub(/["']+\z/, "")
+    s = s.sub(/\s+["']\z/, "")
+    s.strip
+  end
+
+  low_signal_suggestion = lambda do |value|
+    s = value.to_s.downcase
+    return true if s.blank?
+    return true if s.include?("single-sentence confirmation")
+    return true if s.match?(/\bok\?\s*\z/)
+    return true if s.match?(/\bconfirm(?:ation)?\b/) && s.match?(/\b(already|current|existing|same|above|this)\b/)
+    false
+  end
+
+  current_instruction = user_message.instruction.to_s.squish.downcase
+
+  suggestions = suggestions
+    .map { |s| normalize_suggestion.call(s) }
+    .reject(&:blank?)
+    .reject { |s| s.downcase == current_instruction }
+    .reject { |s| low_signal_suggestion.call(s) }
+    .uniq
+    .first(2)
+
+  message_dismissed =
+    if context_enabled && user_message.respond_to?(:suggestions_dismissed?)
+      user_message.suggestions_dismissed?
+    else
+      false
+    end
+
   should_render = latest && (suggestions.any? || !context_enabled)
 %>
 
 <% if should_render %>
-  <div class="assistant-actions">
-    <% if suggestions.any? %>
-      <div class="assistant-actions__list">
-        <% suggestions.each do |suggestion| %>
-          <button
-            type="button"
-            class="assistant-suggestion"
-            data-controller="composer-suggestion"
-            data-action="click->composer-suggestion#insert"
-            data-composer-suggestion-text-value="<%= suggestion %>">
-            <span class="assistant-suggestion__label"><%= suggestion %></span>
-            <span class="assistant-suggestion__cta">Use</span>
-          </button>
-        <% end %>
+  <div
+    class="assistant-actions <%= "is-disabled" unless context_enabled %> <%= "is-collapsed" if message_dismissed %>"
+    data-controller="assistant-suggestions"
+    data-assistant-suggestions-context-enabled-value="<%= context_enabled %>"
+    data-assistant-suggestions-has-suggestions-value="<%= suggestions.any? %>"
+    data-assistant-suggestions-toggle-url-value="<%= toggle_suggestions_chat_user_message_path(chat, user_message) %>"
+    data-assistant-suggestions-initially-dismissed-value="<%= message_dismissed %>">
+
+    <% if context_enabled && suggestions.any? %>
+      <div class="assistant-actions__content" data-assistant-suggestions-target="content">
+        <div class="assistant-actions__list">
+          <% suggestions.each do |suggestion| %>
+            <button
+              type="button"
+              class="assistant-suggestion"
+              data-controller="composer-suggestion"
+              data-action="click->composer-suggestion#insert"
+              data-composer-suggestion-text-value="<%= suggestion %>">
+              <span class="assistant-suggestion__label"><%= suggestion %></span>
+              <span class="assistant-suggestion__cta">Use</span>
+            </button>
+          <% end %>
+        </div>
       </div>
-    <% elsif !context_enabled %>
-      <div class="assistant-actions__empty">Suggestions dismissed for this chat.</div>
+
+      <div class="assistant-actions__collapsed" data-assistant-suggestions-target="collapsedNotice">
+        Suggestions dismissed for this message.
+      </div>
+    <% else %>
+      <div class="assistant-actions__empty">
+        <%= account_enabled ? "Suggestions are dismissed for this chat." : "Suggestions are dismissed for all chats." %>
+      </div>
     <% end %>
 
     <div class="assistant-actions__footer">
+      <% if context_enabled && suggestions.any? %>
+        <button
+          type="button"
+          class="btn btn-secondary btn-small"
+          data-action="assistant-suggestions#dismiss"
+          data-assistant-suggestions-target="dismissButton"
+          <%= "hidden" if message_dismissed %>>
+          Dismiss suggestions
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary btn-small"
+          data-action="assistant-suggestions#restore"
+          data-assistant-suggestions-target="restoreButton"
+          <%= "hidden" unless message_dismissed %>>
+          Show suggestions
+        </button>
+      <% end %>
+
       <%= button_to(
-            (context_enabled ? "Dismiss suggestions" : "Show suggestions"),
+            (chat_enabled ? "Dismiss for this chat" : "Show in this chat"),
             toggle_context_suggestions_chat_path(chat),
             method: :patch,
-            params: { enabled: (!context_enabled), user_message_id: user_message.id },
+            params: { scope: "chat", enabled: (!chat_enabled), user_message_id: user_message.id },
+            class: "btn btn-secondary btn-small",
+            form: { data: { turbo_stream: true } }
+          ) %>
+
+      <%= button_to(
+            (account_enabled ? "Dismiss for all chats" : "Show in all chats"),
+            toggle_context_suggestions_chat_path(chat),
+            method: :patch,
+            params: { scope: "account", enabled: (!account_enabled), user_message_id: user_message.id },
             class: "btn btn-secondary btn-small",
             form: { data: { turbo_stream: true } }
           ) %>

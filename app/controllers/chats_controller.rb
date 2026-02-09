@@ -105,17 +105,17 @@ class ChatsController < ApplicationController
 
   # PATCH /chats/:id/toggle_context_suggestions
   def toggle_context_suggestions
-    enabled =
-      if params[:enabled].nil?
-        !@chat.context_suggestions_enabled?
-      else
-        ActiveModel::Type::Boolean.new.cast(params[:enabled])
-      end
+    scope = params[:scope].to_s
+    scope = "chat" unless %w[chat account].include?(scope)
 
-    @chat.update!(context_suggestions_enabled: enabled)
+    enabled = resolve_suggestions_enabled(scope: scope)
 
-    if !enabled
-      dismiss_pending_context_suggestions!
+    if scope == "account"
+      current_user.update!(context_suggestions_enabled: enabled)
+      dismiss_pending_context_suggestions!(all_chat_ids: company_chat_ids) unless enabled
+    else
+      @chat.update!(context_suggestions_enabled: enabled)
+      dismiss_pending_context_suggestions!(all_chat_ids: [@chat.id]) unless enabled
     end
 
     user_message = @chat.user_messages.find_by(id: params[:user_message_id])
@@ -207,9 +207,24 @@ class ChatsController < ApplicationController
     end
   end
 
-  def dismiss_pending_context_suggestions!
+  def resolve_suggestions_enabled(scope:)
+    current_enabled =
+      if scope == "account"
+        current_user.respond_to?(:context_suggestions_enabled?) ? current_user.context_suggestions_enabled? : true
+      else
+        @chat.context_suggestions_enabled?
+      end
+
+    if params[:enabled].nil?
+      !current_enabled
+    else
+      ActiveModel::Type::Boolean.new.cast(params[:enabled])
+    end
+  end
+
+  def dismiss_pending_context_suggestions!(all_chat_ids:)
     ProposedAction.joins(ai_message: :user_message)
-      .where(user_messages: { chat_id: @chat.id })
+      .where(user_messages: { chat_id: all_chat_ids })
       .where(action_type: "suggest_additional_context", status: "proposed")
       .update_all(
         status: "dismissed",
@@ -217,5 +232,9 @@ class ChatsController < ApplicationController
         dismissed_by_id: current_user.id,
         updated_at: Time.current
       )
+  end
+
+  def company_chat_ids
+    Chat.where(company: @company).pluck(:id)
   end
 end

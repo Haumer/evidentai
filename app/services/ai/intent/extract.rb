@@ -87,14 +87,7 @@ module Ai
         needs_sources = !!h["needs_sources"]
         suggest_web_search = !!h["suggest_web_search"]
 
-        suggested_title =
-          if should_generate_artifact
-            t = h["suggested_title"]
-            t = t.to_s.strip if t
-            t.presence
-          else
-            nil
-          end
+        suggested_title = h["suggested_title"].to_s.strip.presence
 
         flags = h["flags"]
         flags = {} unless flags.is_a?(Hash)

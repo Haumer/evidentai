@@ -293,6 +293,9 @@ module Ai
         Defaulting guidance:
         - If the user message is only an acknowledgement/closure (e.g. "thanks", "great", "ok"), output [].
         - If additional context could improve the next output, prefer "suggest_additional_context" with 1-4 concrete suggestions.
+        - Suggestions must add new, actionable context (audience, scope, constraints, format, examples).
+          Do NOT suggest reconfirming what is already known, do NOT output "OK?" confirmations,
+          and do NOT wrap suggestion text in quotes.
         - If the user requests recurring behavior (daily/morning/weekly/etc.), propose "schedule_prompt".
         - For "each morning" with no time: default to 08:00 (local timezone).
         - If location is missing for weather, still propose "schedule_prompt" if you can, and ask for ONE missing field only if needed.

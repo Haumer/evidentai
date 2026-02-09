@@ -58,6 +58,28 @@ class UserMessagesController < ApplicationController
     }
   end
 
+  # PATCH /chats/:chat_id/user_messages/:id/toggle_suggestions
+  def toggle_suggestions
+    chat = Chat.where(company: @company).find(params[:chat_id])
+    user_message = chat.user_messages.find(params[:id])
+
+    dismissed = ActiveModel::Type::Boolean.new.cast(params[:dismissed])
+    user_message.update!(settings: user_message.with_suggestions_dismissed(dismissed))
+
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.replace(
+          "assistant_actions_user_message_#{user_message.id}",
+          partial: "user_messages/assistant_actions",
+          locals: { user_message: user_message, latest: true }
+        )
+      end
+
+      format.json { render json: { ok: true, dismissed: dismissed } }
+      format.html { redirect_to chat_path(chat) }
+    end
+  end
+
   private
 
   def ensure_membership!

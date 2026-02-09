@@ -186,15 +186,27 @@ module Ai
 
       def context_suggestions_enabled?
         chat = @user_message.respond_to?(:chat) ? @user_message.chat : nil
-        return true unless chat
+        user = @user_message.respond_to?(:created_by) ? @user_message.created_by : nil
 
-        if chat.respond_to?(:context_suggestions_enabled?)
-          chat.context_suggestions_enabled?
-        elsif chat.respond_to?(:context_suggestions_enabled)
-          chat.context_suggestions_enabled != false
-        else
-          true
-        end
+        chat_enabled =
+          if chat.respond_to?(:context_suggestions_enabled?)
+            chat.context_suggestions_enabled?
+          elsif chat.respond_to?(:context_suggestions_enabled)
+            chat.context_suggestions_enabled != false
+          else
+            true
+          end
+
+        account_enabled =
+          if user.respond_to?(:context_suggestions_enabled?)
+            user.context_suggestions_enabled?
+          elsif user.respond_to?(:context_suggestions_enabled)
+            user.context_suggestions_enabled != false
+          else
+            true
+          end
+
+        chat_enabled && account_enabled
       rescue
         true
       end

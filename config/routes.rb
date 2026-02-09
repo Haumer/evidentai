@@ -5,7 +5,11 @@ Rails.application.routes.draw do
 
   # ---- Core app ----
   resources :chats, only: [:index, :show, :create, :update, :destroy] do
-    resources :user_messages, only: [:create]
+    resources :user_messages, only: [:create] do
+      member do
+        patch :toggle_suggestions
+      end
+    end
     member do
       get :artifact_preview
       get :edit_title
