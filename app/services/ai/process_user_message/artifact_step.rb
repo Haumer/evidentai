@@ -46,15 +46,45 @@ module Ai
       private
 
       def generate_artifact_text(previous_text)
+        data_resolution = resolve_available_data
+        persist_data_resolution_flags!(data_resolution)
+
         result = client.generate(
           prompt_snapshot: Ai::Artifacts::ComposeUpdateMessages.messages(
             @user_message,
-            current_artifact_text: previous_text
+            current_artifact_text: previous_text,
+            available_data: data_resolution[:available_data],
+            chat_history: @context.full_user_history_text
           ),
           model: @context.model
         )
 
         result.fetch(:text).to_s
+      end
+
+      def resolve_available_data
+        @resolve_available_data ||= Ai::Data::ResolveAvailableData.new(context: @context).call
+      end
+
+      def persist_data_resolution_flags!(resolution)
+        ai_message = @context.ai_message
+        return unless ai_message
+
+        meta = ai_message.ai_message_meta || ai_message.build_ai_message_meta
+        flags = meta.flags_json.is_a?(Hash) ? meta.flags_json.deep_dup : {}
+        flags["data_resolution"] = {
+          "needed" => resolution[:needed] == true,
+          "decision" => resolution[:decision].to_s,
+          "forced_refresh" => resolution[:forced_refresh] == true,
+          "query_signature" => resolution[:query_signature].to_s,
+          "error" => resolution[:error].to_s.presence
+        }.compact
+
+        meta.flags_json = flags
+        meta.save!
+      rescue => e
+        Rails.logger.info("[ArtifactStep] failed to persist data resolution flags: #{e.class}: #{e.message}")
+        nil
       end
 
       def update_preview!(generated_text)

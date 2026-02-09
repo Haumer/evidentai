@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_09_162000) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_09_170001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -135,6 +135,22 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_09_162000) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "data_source_caches", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.bigint "chat_id", null: false
+    t.string "query_signature", null: false
+    t.text "query_text", null: false
+    t.jsonb "data_json", default: {}, null: false
+    t.jsonb "sources_json", default: [], null: false
+    t.datetime "last_fetched_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["chat_id", "query_signature"], name: "index_data_source_caches_on_chat_id_and_query_signature", unique: true
+    t.index ["chat_id"], name: "index_data_source_caches_on_chat_id"
+    t.index ["company_id"], name: "index_data_source_caches_on_company_id"
+    t.index ["last_fetched_at"], name: "index_data_source_caches_on_last_fetched_at"
+  end
+
   create_table "memberships", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "company_id", null: false
@@ -212,6 +228,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_09_162000) do
   add_foreign_key "attachments", "users", column: "created_by_id"
   add_foreign_key "chats", "companies"
   add_foreign_key "chats", "users", column: "created_by_id"
+  add_foreign_key "data_source_caches", "chats"
+  add_foreign_key "data_source_caches", "companies"
   add_foreign_key "memberships", "companies"
   add_foreign_key "memberships", "users"
   add_foreign_key "proposed_actions", "ai_messages"

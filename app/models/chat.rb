@@ -7,6 +7,7 @@ class Chat < ApplicationRecord
 
   has_many :user_messages, dependent: :destroy
   has_many :artifacts, dependent: :destroy
+  has_many :data_source_caches, dependent: :destroy
 
   def title_locked_by_user?
     title_set_by_user?

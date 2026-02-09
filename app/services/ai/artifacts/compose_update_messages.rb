@@ -11,12 +11,15 @@
 #
 # No streaming, no persistence, no broadcasting.
 
+require "json"
+
 module Ai
   module Artifacts
     class ComposeUpdateMessages
-      def self.messages(user_message, current_artifact_text:)
+      def self.messages(user_message, current_artifact_text:, available_data: nil, chat_history: nil)
         current = current_artifact_text.to_s
         request = user_message.instruction.to_s
+        history = chat_history.to_s
 
         [
           { role: "system", content: Ai::Prompts::OutputEditorSystem::TEXT },
@@ -29,10 +32,24 @@ module Ai
               CHANGE_REQUEST:
               #{request}
 
+              CHAT_HISTORY:
+              #{history.presence || "(none)"}
+
+              AVAILABLE_DATA:
+              #{serialize_available_data(available_data)}
+
               Return UPDATED_ARTIFACT only.
             TEXT
           }
         ]
+      end
+
+      def self.serialize_available_data(available_data)
+        return "(none)" if available_data.blank?
+
+        JSON.pretty_generate(available_data)
+      rescue
+        available_data.to_s
       end
     end
   end
