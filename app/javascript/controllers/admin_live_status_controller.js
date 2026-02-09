@@ -22,6 +22,7 @@ export default class extends Controller {
     const stream = event.target
     if (!(stream instanceof Element)) return
     if (stream.getAttribute("target") !== "admin_ai_usage_report") return
+    if (!event.detail || typeof event.detail.render !== "function") return
 
     this.pendingUpdates += 1
     this.setUpdatingStatus()

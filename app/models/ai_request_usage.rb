@@ -63,7 +63,7 @@ class AiRequestUsage < ApplicationRecord
   def broadcast_report_refresh
     data = Ai::Usage::ReportData.new(company: company).call
 
-    Turbo::StreamsChannel.broadcast_replace_to(
+    Turbo::StreamsChannel.broadcast_update_to(
       [company, :ai_usage],
       target: "admin_ai_usage_report",
       partial: "admin/ai_usage/report",
