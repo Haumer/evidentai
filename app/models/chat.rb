@@ -7,6 +7,7 @@ class Chat < ApplicationRecord
 
   has_many :user_messages, dependent: :destroy
   has_many :artifacts, dependent: :destroy
+  has_many :artifact_triggers, dependent: :destroy
   has_many :data_source_caches, class_name: "DataSourceCache", dependent: :destroy
   has_many :ai_request_usages
 

@@ -29,7 +29,7 @@
         %>
 
         <article class="artifact-card">
-          <%= link_to "", chat_path(artifact.chat), class: "artifact-card__open", aria: { label: "Open #{chat_title}" } %>
+          <%= link_to "", artifact_path(artifact), class: "artifact-card__open", aria: { label: "Open #{chat_title}" } %>
 
           <div class="artifact-card__thumb">
             <% if srcdoc.present? %>

@@ -1,0 +1,78 @@
+<%# app/views/artifacts/_trigger.html.erb %>
+
+<article class="artifact-trigger-card">
+  <header class="artifact-trigger-card__header">
+    <div>
+      <h3><%= trigger.name %></h3>
+      <p class="muted">
+        <span class="pill"><%= trigger.trigger_type %></span>
+        <span class="pill"><%= trigger.status %></span>
+        <% if trigger.last_fired_at.present? %>
+          Last fired <%= time_ago_in_words(trigger.last_fired_at) %> ago
+        <% else %>
+          Never fired
+        <% end %>
+      </p>
+    </div>
+
+    <%= button_to "Delete",
+          artifact_trigger_path(artifact, trigger),
+          method: :delete,
+          class: "btn btn-secondary btn-small",
+          data: { turbo_confirm: "Delete this trigger?" } %>
+  </header>
+
+  <div class="artifact-trigger-card__meta muted">
+    Context window: <strong><%= trigger.context_turns %> turns</strong>, <strong><%= trigger.context_max_chars %> chars</strong>.
+    Fired <strong><%= trigger.fired_count %></strong> times.
+  </div>
+
+  <% if trigger.instruction_template.to_s.strip.present? %>
+    <div class="artifact-trigger-card__template">
+      <div class="small muted">Prompt template</div>
+      <pre><%= trigger.instruction_template %></pre>
+    </div>
+  <% end %>
+
+  <%= form_with url: fire_artifact_trigger_path(artifact, trigger), method: :post, local: true, class: "artifact-trigger-fire-form" do |f| %>
+    <label>
+      New context input
+      <%= f.text_area :input_text,
+            rows: 3,
+            placeholder: "Example: email body, source excerpt, notes about a new file, or API payload text." %>
+    </label>
+
+    <div class="artifact-trigger-fire-form__grid">
+      <label>
+        Override context turns
+        <%= f.number_field :context_turns,
+              value: trigger.context_turns,
+              min: ArtifactTrigger::MIN_CONTEXT_TURNS,
+              max: ArtifactTrigger::MAX_CONTEXT_TURNS %>
+      </label>
+
+      <label>
+        Override context max chars
+        <%= f.number_field :context_max_chars,
+              value: trigger.context_max_chars,
+              min: ArtifactTrigger::MIN_CONTEXT_MAX_CHARS,
+              max: ArtifactTrigger::MAX_CONTEXT_MAX_CHARS,
+              step: 100 %>
+      </label>
+    </div>
+
+    <div class="artifact-trigger-fire-form__actions">
+      <%= f.submit "Run now", class: "btn btn-primary", disabled: !trigger.active? %>
+    </div>
+  <% end %>
+
+  <% unless trigger.trigger_type == "manual" %>
+    <div class="artifact-trigger-card__api muted">
+      API endpoint:
+      <code><%= fire_api_artifact_trigger_url(trigger) %></code>
+      <br>
+      Bearer token:
+      <code><%= trigger.api_token %></code>
+    </div>
+  <% end %>
+</article>

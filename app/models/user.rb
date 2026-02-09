@@ -8,6 +8,7 @@ class User < ApplicationRecord
 
   has_many :memberships, dependent: :destroy
   has_many :companies, through: :memberships
+  has_many :artifact_triggers, foreign_key: :created_by_id, dependent: :destroy
 
   def context_suggestions_enabled?
     return true unless has_attribute?(:context_suggestions_enabled)

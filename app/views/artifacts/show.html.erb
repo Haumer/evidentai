@@ -1,0 +1,88 @@
+<%# app/views/artifacts/show.html.erb %>
+
+<%= turbo_stream_from @chat %>
+
+<div class="chat-layout artifact-show-layout">
+  <section class="chat-pane artifact-triggers-pane">
+    <div class="artifact-triggers">
+      <header class="artifact-triggers__header">
+        <h1>Triggers</h1>
+        <p class="muted">
+          Artifact for <%= @chat.title.to_s.strip.presence || "Untitled chat" %>.
+          Each trigger queues a fresh run with your selected context window.
+        </p>
+      </header>
+
+      <section class="artifact-triggers__create">
+        <h2>New trigger</h2>
+
+        <%= form_with model: @trigger, url: artifact_triggers_path(@artifact), local: true, class: "artifact-trigger-form" do |f| %>
+          <div class="artifact-trigger-form__grid">
+            <label>
+              Name
+              <%= f.text_field :name, required: true %>
+            </label>
+
+            <label>
+              Type
+              <%= f.select :trigger_type, ArtifactTrigger::TRIGGER_TYPES.map { |t| [t.titleize, t] } %>
+            </label>
+
+            <label>
+              Status
+              <%= f.select :status, ArtifactTrigger::STATUSES.map { |s| [s.titleize, s] } %>
+            </label>
+
+            <label>
+              Context turns
+              <%= f.number_field :context_turns, min: ArtifactTrigger::MIN_CONTEXT_TURNS, max: ArtifactTrigger::MAX_CONTEXT_TURNS %>
+            </label>
+
+            <label>
+              Context max chars
+              <%= f.number_field :context_max_chars, min: ArtifactTrigger::MIN_CONTEXT_MAX_CHARS, max: ArtifactTrigger::MAX_CONTEXT_MAX_CHARS, step: 100 %>
+            </label>
+          </div>
+
+          <label>
+            Base prompt template (optional)
+            <%= f.text_area :instruction_template, rows: 3, placeholder: "Defaults to the latest user prompt from this chat." %>
+          </label>
+
+          <div class="artifact-trigger-form__actions">
+            <%= f.submit "Create trigger", class: "btn btn-primary" %>
+            <%= link_to "Open chat", chat_path(@chat), class: "btn btn-secondary" %>
+          </div>
+        <% end %>
+      </section>
+
+      <section class="artifact-triggers__list">
+        <h2>Configured triggers</h2>
+
+        <% if @triggers.any? %>
+          <% @triggers.each do |trigger| %>
+            <%= render partial: "artifacts/trigger", locals: { artifact: @artifact, trigger: trigger } %>
+          <% end %>
+        <% else %>
+          <div class="artifact-triggers__empty">
+            No triggers yet.
+          </div>
+        <% end %>
+      </section>
+    </div>
+  </section>
+
+  <aside class="artifact-pane">
+    <div id="artifact_live">
+      <%= turbo_frame_tag "artifact_content" do %>
+        <%= render partial: "chats/artifact_preview",
+                   locals: {
+                     text: @artifact_text,
+                     status: (@artifact_text.present? ? "ready" : "waiting"),
+                     chat: @chat,
+                     artifact: @artifact
+                   } %>
+      <% end %>
+    </div>
+  </aside>
+</div>
